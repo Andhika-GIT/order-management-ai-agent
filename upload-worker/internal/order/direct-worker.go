@@ -30,7 +30,6 @@ func NewOrderDirectWorker(Rmq *shared.RabbitMqConsumer, RdsPublisher *redispubsu
 }
 
 func (w *OrderDirectWorker) Start() {
-	defer w.Rmq.Close()
 
 	c := context.Background()
 

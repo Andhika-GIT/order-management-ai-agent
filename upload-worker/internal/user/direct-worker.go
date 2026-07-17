@@ -30,7 +30,6 @@ func NewUserDirectUploadWorker(Rmq *shared.RabbitMqConsumer, RdsPublisher *redis
 }
 
 func (w *UserDirectUploadWorker) Start() {
-	defer w.Rmq.Close()
 
 	c := context.Background()
 

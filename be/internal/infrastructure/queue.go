@@ -18,9 +18,6 @@ func InitQueue(rmq *shared.RabbitMqProducer, cfg *shared.Config) error {
 	if err := rmq.QueueBind(cfg.RabbitMQQueue.UserDirectImport, cfg.RabbitMQExchange, cfg.RabbitMQRoutingKey.UserDirectImport); err != nil {
 		return err
 	}
-	if err := rmq.QueueBind(cfg.RabbitMQQueue.UserSftpImport, cfg.RabbitMQExchange, cfg.RabbitMQRoutingKey.UserSftpImport); err != nil {
-		return err
-	}
 	// --- Order Queues ---
 	if err := rmq.QueueBind(cfg.RabbitMQQueue.OrderDirectImport, cfg.RabbitMQExchange, cfg.RabbitMQRoutingKey.OrderDirectImport); err != nil {
 		return err
