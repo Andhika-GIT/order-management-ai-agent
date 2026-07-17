@@ -1,12 +1,12 @@
-package redispubsub
+package redis
 
 import (
-	"github.com/Andhika-GIT/go-message-broker-monorepo/internal/shared"
+	"github.com/Andhika-GIT/go-message-broker-monorepo/configs"
 	"github.com/redis/go-redis/v9"
 	"github.com/redis/go-redis/v9/maintnotifications"
 )
 
-func NewRedisClient(cfg *shared.RedisClientConfig) (*redis.Client, error) {
+func NewRedisClient(cfg *configs.RedisClientConfig) (*redis.Client, error) {
 
 	opt, err := redis.ParseURL(cfg.Addr)
 

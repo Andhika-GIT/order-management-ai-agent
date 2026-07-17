@@ -1,4 +1,4 @@
-package order
+package usecase
 
 import (
 	"context"
@@ -6,32 +6,33 @@ import (
 	"strconv"
 	"strings"
 
-	"github.com/Andhika-GIT/go-message-broker-monorepo/internal/user"
+	"github.com/Andhika-GIT/go-message-broker-monorepo/model"
+	"github.com/Andhika-GIT/go-message-broker-monorepo/repository"
 	"gorm.io/gorm"
 )
 
 type OrderUseCase struct {
-	Repository  *OrderRepository
+	Repository  *repository.OrderRepository
 	DB          *gorm.DB
-	UserUseCase *user.UserUseCase
+	UserUseCase *UserUseCase
 }
 
-func stringToOrderStatus(statusStr string) OrderStatus {
+func stringToOrderStatus(statusStr string) model.OrderStatus {
 	switch strings.ToLower(strings.TrimSpace(statusStr)) {
 	case "pending", "Pending":
-		return StatusPending
+		return model.StatusPending
 	case "processing", "process", "Processing":
-		return StatusProcessing
+		return model.StatusProcessing
 	case "completed", "complete", "Completed":
-		return StatusCompleted
+		return model.StatusCompleted
 	case "cancelled", "cancel", "Cancelled":
-		return StatusCancelled
+		return model.StatusCancelled
 	default:
-		return StatusPending
+		return model.StatusPending
 	}
 }
 
-func NewOrderUseCase(Repository *OrderRepository, DB *gorm.DB, UserUseCase *user.UserUseCase) *OrderUseCase {
+func NewOrderUseCase(Repository *repository.OrderRepository, DB *gorm.DB, UserUseCase *UserUseCase) *OrderUseCase {
 	return &OrderUseCase{
 		Repository:  Repository,
 		DB:          DB,
@@ -39,8 +40,8 @@ func NewOrderUseCase(Repository *OrderRepository, DB *gorm.DB, UserUseCase *user
 	}
 }
 
-func (uc *OrderUseCase) ReadOrderExcel(rows [][]string) []OrderImport {
-	var orders []OrderImport
+func (uc *OrderUseCase) ReadOrderExcel(rows [][]string) []model.OrderImport {
+	var orders []model.OrderImport
 
 	for i, row := range rows {
 		if i == 0 {
@@ -55,7 +56,7 @@ func (uc *OrderUseCase) ReadOrderExcel(rows [][]string) []OrderImport {
 
 			status := stringToOrderStatus(row[3])
 
-			orders = append(orders, OrderImport{
+			orders = append(orders, model.OrderImport{
 				UserEmail:   row[0],
 				ProductName: row[1],
 				Quantity:    quantity,
@@ -67,12 +68,12 @@ func (uc *OrderUseCase) ReadOrderExcel(rows [][]string) []OrderImport {
 	return orders
 }
 
-func (uc *OrderUseCase) CreateOrders(c context.Context, orders []OrderImport) error {
+func (uc *OrderUseCase) CreateOrders(c context.Context, orders []model.OrderImport) error {
 	tx := uc.DB.WithContext(c).Begin()
 
 	defer tx.Rollback()
 
-	var newOrders []Order
+	var newOrders []model.Order
 
 	for _, order := range orders {
 		user, err := uc.UserUseCase.FindUserByEmail(c, order.UserEmail)
@@ -81,7 +82,7 @@ func (uc *OrderUseCase) CreateOrders(c context.Context, orders []OrderImport) er
 			continue
 		}
 
-		newOrders = append(newOrders, Order{
+		newOrders = append(newOrders, model.Order{
 			UserId:      user.ID,
 			ProductName: order.ProductName,
 			Quantity:    int64(order.Quantity),

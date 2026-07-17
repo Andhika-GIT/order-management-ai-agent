@@ -1,12 +1,13 @@
-package infrastructure
+package app
 
 import (
 	"log"
 
-	"github.com/Andhika-GIT/go-message-broker-monorepo/internal/shared"
+	"github.com/Andhika-GIT/go-message-broker-monorepo/configs"
+	"github.com/Andhika-GIT/go-message-broker-monorepo/pkg/rabbitmq"
 )
 
-func InitQueue(rmq *shared.RabbitMqConsumer, cfg *shared.Config) error {
+func InitQueue(rmq *rabbitmq.RabbitMqConsumer, cfg *configs.Config) error {
 	log.Println("Initializing RabbitMQ...")
 
 	// Declare exchange

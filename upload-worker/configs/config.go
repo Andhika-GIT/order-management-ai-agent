@@ -1,4 +1,4 @@
-package shared
+package configs
 
 import "github.com/spf13/viper"
 
@@ -26,13 +26,6 @@ type RabbitMQQueue struct {
 	OrderDirectImport string
 	OrderImport       string
 	OrderExport       string
-}
-
-type RabbitMQConfig struct {
-	ConnectURL string
-	Exchange   string
-	RoutingKey RabbitMQRoutingKey
-	Queue      RabbitMQQueue
 }
 
 type RedisClientConfig struct {

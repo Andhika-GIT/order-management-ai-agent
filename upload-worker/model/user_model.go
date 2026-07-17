@@ -1,4 +1,4 @@
-package user
+package model
 
 import "time"
 
@@ -13,4 +13,17 @@ type User struct {
 
 func (a *User) TableName() string {
 	return "users"
+}
+
+type UserImport struct {
+	Name        string `json:"name"`
+	Email       string `json:"email"`
+	PhoneNumber string `json:"phoneNumber"`
+}
+
+type UserResponse struct {
+	ID          int64  `json:"id"`
+	Name        string `json:"name"`
+	Email       string `json:"email"`
+	PhoneNumber string `json:"phoneNumber"`
 }

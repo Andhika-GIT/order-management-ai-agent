@@ -1,4 +1,4 @@
-package user
+package consumer
 
 import (
 	"context"
@@ -6,21 +6,25 @@ import (
 	"fmt"
 	"log"
 
-	"github.com/Andhika-GIT/go-message-broker-monorepo/internal/shared"
-	redispubsub "github.com/Andhika-GIT/go-message-broker-monorepo/internal/shared/redis"
+	"github.com/Andhika-GIT/go-message-broker-monorepo/configs"
+	"github.com/Andhika-GIT/go-message-broker-monorepo/model"
+	"github.com/Andhika-GIT/go-message-broker-monorepo/pkg/excel"
+	"github.com/Andhika-GIT/go-message-broker-monorepo/pkg/rabbitmq"
+	"github.com/Andhika-GIT/go-message-broker-monorepo/pkg/redis"
+	"github.com/Andhika-GIT/go-message-broker-monorepo/usecase"
 	"github.com/pkg/sftp"
 )
 
-type UserDirectUploadWorker struct {
-	Rmq          *shared.RabbitMqConsumer
-	RdsPublisher *redispubsub.Publisher
-	UseCase      *UserUseCase
-	QueueCfg     *shared.RabbitMQQueue
+type UserConsumer struct {
+	Rmq          *rabbitmq.RabbitMqConsumer
+	RdsPublisher *redis.Publisher
+	UseCase      *usecase.UserUseCase
+	QueueCfg     *configs.RabbitMQQueue
 	sftpClient   *sftp.Client
 }
 
-func NewUserDirectUploadWorker(Rmq *shared.RabbitMqConsumer, RdsPublisher *redispubsub.Publisher, UseCase *UserUseCase, cfg *shared.RabbitMQQueue, sftpClient *sftp.Client) *UserDirectUploadWorker {
-	return &UserDirectUploadWorker{
+func NewUserConsumer(Rmq *rabbitmq.RabbitMqConsumer, RdsPublisher *redis.Publisher, UseCase *usecase.UserUseCase, cfg *configs.RabbitMQQueue, sftpClient *sftp.Client) *UserConsumer {
+	return &UserConsumer{
 		Rmq:          Rmq,
 		RdsPublisher: RdsPublisher,
 		UseCase:      UseCase,
@@ -29,7 +33,7 @@ func NewUserDirectUploadWorker(Rmq *shared.RabbitMqConsumer, RdsPublisher *redis
 	}
 }
 
-func (w *UserDirectUploadWorker) Start() {
+func (w *UserConsumer) Start() {
 	defer w.Rmq.Close()
 
 	c := context.Background()
@@ -40,7 +44,7 @@ func (w *UserDirectUploadWorker) Start() {
 		log.Println(err)
 	}
 
-	var uploadMsg shared.UploadMessage
+	var uploadMsg model.UploadMessage
 	for msg := range msgs {
 		err := json.Unmarshal(msg.Body, &uploadMsg)
 
@@ -56,7 +60,7 @@ func (w *UserDirectUploadWorker) Start() {
 			continue
 		}
 
-		rows, err := shared.ReadExcel(remoteFile)
+		rows, err := excel.ReadExcel(remoteFile)
 
 		if err != nil {
 			log.Print(err.Error())

@@ -1,14 +1,14 @@
-package infrastructure
+package database
 
 import (
 	"fmt"
 
-	"github.com/Andhika-GIT/go-message-broker-monorepo/internal/shared"
+	"github.com/Andhika-GIT/go-message-broker-monorepo/configs"
 	"gorm.io/driver/postgres"
 	"gorm.io/gorm"
 )
 
-func NewDatabase(cfg *shared.DatabaseConfig) (*gorm.DB, error) {
+func NewDatabase(cfg *configs.DatabaseConfig) (*gorm.DB, error) {
 	DB_HOST := cfg.Host
 	DB_NAME := cfg.Name
 	DB_PORT := cfg.Port

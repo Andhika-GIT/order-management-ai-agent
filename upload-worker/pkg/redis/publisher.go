@@ -1,4 +1,4 @@
-package redispubsub
+package redis
 
 import (
 	"context"

@@ -1,4 +1,4 @@
-package order
+package consumer
 
 import (
 	"context"
@@ -6,21 +6,25 @@ import (
 	"fmt"
 	"log"
 
-	"github.com/Andhika-GIT/go-message-broker-monorepo/internal/shared"
-	redispubsub "github.com/Andhika-GIT/go-message-broker-monorepo/internal/shared/redis"
+	"github.com/Andhika-GIT/go-message-broker-monorepo/configs"
+	"github.com/Andhika-GIT/go-message-broker-monorepo/model"
+	"github.com/Andhika-GIT/go-message-broker-monorepo/pkg/excel"
+	"github.com/Andhika-GIT/go-message-broker-monorepo/pkg/rabbitmq"
+	"github.com/Andhika-GIT/go-message-broker-monorepo/pkg/redis"
+	"github.com/Andhika-GIT/go-message-broker-monorepo/usecase"
 	"github.com/pkg/sftp"
 )
 
-type OrderDirectWorker struct {
-	Rmq          *shared.RabbitMqConsumer
-	RdsPublisher *redispubsub.Publisher
-	UseCase      *OrderUseCase
-	QueueCfg     *shared.RabbitMQQueue
+type OrderConsumer struct {
+	Rmq          *rabbitmq.RabbitMqConsumer
+	RdsPublisher *redis.Publisher
+	UseCase      *usecase.OrderUseCase
+	QueueCfg     *configs.RabbitMQQueue
 	sftpClient   *sftp.Client
 }
 
-func NewOrderDirectWorker(Rmq *shared.RabbitMqConsumer, RdsPublisher *redispubsub.Publisher, UseCase *OrderUseCase, cfg *shared.RabbitMQQueue, sftpClient *sftp.Client) *OrderDirectWorker {
-	return &OrderDirectWorker{
+func NewOrderConsumer(Rmq *rabbitmq.RabbitMqConsumer, RdsPublisher *redis.Publisher, UseCase *usecase.OrderUseCase, cfg *configs.RabbitMQQueue, sftpClient *sftp.Client) *OrderConsumer {
+	return &OrderConsumer{
 		Rmq:          Rmq,
 		RdsPublisher: RdsPublisher,
 		UseCase:      UseCase,
@@ -29,7 +33,7 @@ func NewOrderDirectWorker(Rmq *shared.RabbitMqConsumer, RdsPublisher *redispubsu
 	}
 }
 
-func (w *OrderDirectWorker) Start() {
+func (w *OrderConsumer) Start() {
 	defer w.Rmq.Close()
 
 	c := context.Background()
@@ -40,7 +44,7 @@ func (w *OrderDirectWorker) Start() {
 		log.Println(err.Error())
 	}
 
-	var uploadMsg shared.UploadMessage
+	var uploadMsg model.UploadMessage
 	for msg := range msgs {
 		err := json.Unmarshal(msg.Body, &uploadMsg)
 
@@ -56,7 +60,7 @@ func (w *OrderDirectWorker) Start() {
 			continue
 		}
 
-		rows, err := shared.ReadExcel(remoteFile)
+		rows, err := excel.ReadExcel(remoteFile)
 
 		if err != nil {
 			log.Print(err.Error())
