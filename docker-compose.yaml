@@ -56,7 +56,7 @@ services:
     image: redis:7.4-alpine
     container_name: redis-pubsub-dev
     ports:
-      - "6379:6379"
+      - "63795:6379"
     volumes:
       - redis-data:/data
     command: ["redis-server", "--appendonly", "yes"]
