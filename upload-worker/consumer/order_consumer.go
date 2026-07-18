@@ -34,7 +34,6 @@ func NewOrderConsumer(Rmq *rabbitmq.RabbitMqConsumer, RdsPublisher *redis.Publis
 }
 
 func (w *OrderConsumer) Start() {
-	defer w.Rmq.Close()
 
 	c := context.Background()
 

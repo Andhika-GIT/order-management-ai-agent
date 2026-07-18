@@ -34,7 +34,6 @@ func NewUserConsumer(Rmq *rabbitmq.RabbitMqConsumer, RdsPublisher *redis.Publish
 }
 
 func (w *UserConsumer) Start() {
-	defer w.Rmq.Close()
 
 	c := context.Background()
 
