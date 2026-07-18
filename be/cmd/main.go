@@ -3,11 +3,11 @@ package main
 import (
 	"net/http"
 
-	"github.com/Andhika-GIT/go-message-broker-monorepo/internal/infrastructure"
+	"github.com/Andhika-GIT/go-message-broker-monorepo/app"
 )
 
 func main() {
-	r := infrastructure.InitApp()
+	r := app.InitApp()
 
 	http.ListenAndServe(":3005", r)
 }
