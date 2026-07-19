@@ -3,6 +3,8 @@ package rabbitmq
 import (
 	"context"
 	"fmt"
+	"log"
+	"time"
 
 	"github.com/Andhika-GIT/go-message-broker-monorepo/configs"
 	"github.com/rabbitmq/amqp091-go"
@@ -21,7 +23,23 @@ func NewRabbitMqConsumer(config configs.RabbitMQConfig, handler func(ctx context
 }
 
 func (c *RabbitMqConsumer) Start(ctx context.Context) error {
-	panic("")
+	for {
+		err := c.Run(ctx)
+
+		if err == nil {
+			return nil
+		}
+
+		log.Printf("consumer err, will reconnect in 5 seconds ...")
+
+		select {
+		case <-ctx.Done():
+			return nil
+		case <-time.After(5 * time.Second):
+
+		}
+
+	}
 }
 
 func (c *RabbitMqConsumer) Run(ctx context.Context) error {
