@@ -1,11 +1,11 @@
 package app
 
 import (
+	"context"
 	"log"
 
 	"github.com/Andhika-GIT/go-message-broker-monorepo/configs"
 	"github.com/Andhika-GIT/go-message-broker-monorepo/database"
-	"github.com/Andhika-GIT/go-message-broker-monorepo/pkg/rabbitmq"
 	"github.com/Andhika-GIT/go-message-broker-monorepo/pkg/redis"
 	"github.com/Andhika-GIT/go-message-broker-monorepo/pkg/sftpclient"
 	"github.com/go-chi/chi/v5"
@@ -13,6 +13,7 @@ import (
 
 func InitApp() *chi.Mux {
 	r := chi.NewRouter()
+	ctx := context.Background()
 
 	v, err := configs.NewViper()
 
@@ -34,19 +35,6 @@ func InitApp() *chi.Mux {
 		log.Printf("failed to initialize sftp: %v", err)
 	}
 
-	rmq, err := rabbitmq.NewRabbitMqConsumer(cfg.RabbitMQConnectURL)
-
-	if err != nil {
-		log.Printf("failed to initialize RabbitMQ connection: %v", err)
-	}
-
-	err = InitQueue(rmq, cfg)
-
-	if err != nil {
-		log.Printf("failed to bind RabbitMQ queues: %v", err)
-
-	}
-
 	redisClient, err := redis.NewRedisClient(&cfg.RedisClient)
 	if err != nil {
 		log.Printf("failed to connect to redis: %v", err)
@@ -55,8 +43,16 @@ func InitApp() *chi.Mux {
 
 	redisPublisher := redis.NewPublisher(redisClient)
 
-	userUseCase := wireUserModule(rmq, redisPublisher, db, &cfg.RabbitMQQueue, sftpClient)
-	wireOrderModule(rmq, redisPublisher, db, userUseCase, &cfg.RabbitMQQueue, sftpClient)
+	deps := ModuleDeps{
+		DB:           db,
+		RdsPublisher: redisPublisher,
+		SftpClient:   sftpClient,
+		Viper:        v,
+		Ctx:          ctx,
+	}
+
+	userUseCase := wireUserModule(deps)
+	wireOrderModule(deps, userUseCase)
 
 	return r
 }
