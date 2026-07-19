@@ -37,6 +37,7 @@ func (w *UserConsumer) HandleMessage(c context.Context, msg amqp091.Delivery) {
 
 	if err != nil {
 		log.Println("error when converting", err.Error())
+		_ = msg.Nack(false, false)
 		return
 	}
 
@@ -44,6 +45,7 @@ func (w *UserConsumer) HandleMessage(c context.Context, msg amqp091.Delivery) {
 
 	if err != nil {
 		log.Printf("error when reading sftp file: %v", err)
+		_ = msg.Nack(false, true)
 		return
 	}
 
@@ -51,6 +53,7 @@ func (w *UserConsumer) HandleMessage(c context.Context, msg amqp091.Delivery) {
 
 	if err != nil {
 		log.Print(err.Error())
+		_ = msg.Nack(false, true)
 		return
 	}
 
@@ -60,6 +63,7 @@ func (w *UserConsumer) HandleMessage(c context.Context, msg amqp091.Delivery) {
 
 	if err != nil {
 		log.Print(err.Error())
+		_ = msg.Nack(false, true)
 		return
 	}
 
@@ -69,4 +73,5 @@ func (w *UserConsumer) HandleMessage(c context.Context, msg amqp091.Delivery) {
 		log.Print(err.Error())
 	}
 
+	_ = msg.Ack(false)
 }
