@@ -5,21 +5,18 @@ import (
 	"fmt"
 
 	"github.com/Andhika-GIT/go-message-broker-monorepo/model"
-	"github.com/Andhika-GIT/go-message-broker-monorepo/pkg/rabbitmq"
 	"github.com/Andhika-GIT/go-message-broker-monorepo/repository"
 	"gorm.io/gorm"
 )
 
 type UserUseCase struct {
 	Repository *repository.UserRepository
-	rmq        *rabbitmq.RabbitMqProducer
 	DB         *gorm.DB
 }
 
-func NewUserUseCase(Repository *repository.UserRepository, rmq *rabbitmq.RabbitMqProducer, DB *gorm.DB) *UserUseCase {
+func NewUserUseCase(Repository *repository.UserRepository, DB *gorm.DB) *UserUseCase {
 	return &UserUseCase{
 		Repository: Repository,
-		rmq:        rmq,
 		DB:         DB,
 	}
 }

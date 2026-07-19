@@ -1,89 +1,78 @@
 package rabbitmq
 
 import (
-	"encoding/json"
+	"context"
 	"fmt"
+	"sync"
 
+	"github.com/Andhika-GIT/go-message-broker-monorepo/configs"
 	"github.com/rabbitmq/amqp091-go"
 )
 
-const ExchangeGoApp = "go-app-exchange"
-
-type RabbitMqProducer struct {
-	Conn    *amqp091.Connection
-	Channel *amqp091.Channel
+type Publisher struct {
+	config configs.RabbitMQConfig
+	conn   *amqp091.Connection
+	mu     sync.Mutex
 }
 
-func NewRabbitMqProducer(connectionUrl string) (*RabbitMqProducer, error) {
-	conn, err := amqp091.Dial(connectionUrl)
+func NewPublisher(config configs.RabbitMQConfig) (*Publisher, error) {
+	p := &Publisher{config: config}
 
-	if err != nil {
+	if err := p.connect(); err != nil {
 		return nil, err
+	}
 
+	return p, nil
+}
+
+func (p *Publisher) connect() error {
+	conn, err := amqp091.Dial(p.config.URL)
+	if err != nil {
+		return fmt.Errorf("dial: %w", err)
 	}
 
 	ch, err := conn.Channel()
-
 	if err != nil {
-		return nil, err
+		return fmt.Errorf("channel: %w", err)
+	}
+	defer ch.Close()
+
+	if err := ch.ExchangeDeclare(
+		p.config.ExchangeName,
+		p.config.ExchangeType,
+		true, false, false, false, nil,
+	); err != nil {
+		return fmt.Errorf("exchange declare: %w", err)
 	}
 
-	return &RabbitMqProducer{
-		Conn:    conn,
-		Channel: ch,
-	}, nil
+	p.conn = conn
+	return nil
 }
 
-func (c *RabbitMqProducer) Close() {
-	if c.Channel != nil {
-		_ = c.Channel.Close()
+func (p *Publisher) Publish(ctx context.Context, routingKey string, body []byte) error {
+	p.mu.Lock()
+	if p.conn == nil || p.conn.IsClosed() {
+		if err := p.connect(); err != nil {
+			p.mu.Unlock()
+			return fmt.Errorf("reconnect: %w", err)
+		}
 	}
+	conn := p.conn
+	p.mu.Unlock()
 
-	if c.Conn != nil {
-		_ = c.Conn.Close()
+	ch, err := conn.Channel()
+	if err != nil {
+		return fmt.Errorf("channel: %w", err)
 	}
-}
+	defer ch.Close()
 
-func (r *RabbitMqProducer) DeclareExchange(exchangeName, exchangeType string) error {
-	return r.Channel.ExchangeDeclare(
-		exchangeName,
-		exchangeType,
-		true,
-		false,
-		false,
-		false,
-		nil,
-	)
-}
-
-func (r *RabbitMqProducer) QueueBind(queueName, exchangeName, routingKey string) error {
-	return r.Channel.QueueBind(
-		queueName,
+	return ch.PublishWithContext(ctx,
+		p.config.ExchangeName,
 		routingKey,
-		exchangeName,
-		false,
-		nil,
-	)
-}
-
-func (c *RabbitMqProducer) Publish(routingKey string, payload any) error {
-	body, err := json.Marshal(payload)
-
-	if err != nil {
-		return fmt.Errorf("failed to marshal payload: %v", err)
-	}
-
-	err = c.Channel.Publish(
-		ExchangeGoApp, routingKey, false, false,
+		false, false,
 		amqp091.Publishing{
-			ContentType: "text/plain",
+			ContentType: "application/json",
 			Body:        body,
 		},
 	)
-
-	if err != nil {
-		return fmt.Errorf("failed to publish message: %v", err)
-	}
-
-	return nil
 }

@@ -1,6 +1,8 @@
 package worker
 
 import (
+	"context"
+	"encoding/json"
 	"fmt"
 	"io"
 	"log"
@@ -20,30 +22,30 @@ type UploadTask struct {
 var UploadQueue = make(chan UploadTask, 100)
 
 type UploadWorker struct {
-	rmq        *rabbitmq.RabbitMqProducer
+	publisher  *rabbitmq.Publisher
 	sftpClient *sftp.Client
 	numWorkers int
 }
 
-func NewUploadWorker(sftp *sftp.Client, rmq *rabbitmq.RabbitMqProducer, numWorkers int) *UploadWorker {
+func NewUploadWorker(sftp *sftp.Client, publisher *rabbitmq.Publisher, numWorkers int) *UploadWorker {
 	return &UploadWorker{
 		sftpClient: sftp,
-		rmq:        rmq,
+		publisher:  publisher,
 		numWorkers: numWorkers,
 	}
 }
 
-func (w *UploadWorker) Start() {
+func (w *UploadWorker) Start(ctx context.Context) {
 	for i := 0; i < w.numWorkers; i++ {
 		go func() {
 			for task := range UploadQueue {
-				w.processUpload(task)
+				w.processUpload(ctx, task)
 			}
 		}()
 	}
 }
 
-func (w *UploadWorker) processUpload(task UploadTask) {
+func (w *UploadWorker) processUpload(ctx context.Context, task UploadTask) {
 
 	path := fmt.Sprintf("%v/%s", task.Filepath, task.Filename)
 
@@ -68,7 +70,16 @@ func (w *UploadWorker) processUpload(task UploadTask) {
 		Filepath: path,
 	}
 
-	w.rmq.Publish(task.QueueRoutingKey, uploadMsg)
+	body, err := json.Marshal(uploadMsg)
+
+	if err != nil {
+		log.Printf("failed to marshal upload message: %v", err)
+		return
+	}
+
+	if err := w.publisher.Publish(ctx, task.QueueRoutingKey, body); err != nil {
+		log.Printf("failed to publish upload message: %v", err)
+	}
 
 }
 
