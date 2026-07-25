@@ -1,30 +1,60 @@
 package app
 
 import (
+	"context"
+	"log"
+
 	"github.com/Andhika-GIT/go-message-broker-monorepo/configs"
-	"github.com/Andhika-GIT/go-message-broker-monorepo/consumer"
+	consumer "github.com/Andhika-GIT/go-message-broker-monorepo/consumer_handler"
 	"github.com/Andhika-GIT/go-message-broker-monorepo/pkg/rabbitmq"
 	"github.com/Andhika-GIT/go-message-broker-monorepo/pkg/redis"
 	"github.com/Andhika-GIT/go-message-broker-monorepo/repository"
 	"github.com/Andhika-GIT/go-message-broker-monorepo/usecase"
 	"github.com/pkg/sftp"
+	"github.com/spf13/viper"
 	"gorm.io/gorm"
 )
 
-func wireUserModule(rmq *rabbitmq.RabbitMqConsumer, rdsPublisher *redis.Publisher, db *gorm.DB, queueCfg *configs.RabbitMQQueue, sftpClient *sftp.Client) *usecase.UserUseCase {
-	userUseCase := usecase.NewUserUseCase(&repository.UserRepository{}, db)
+type ModuleDeps struct {
+	DB           *gorm.DB
+	RdsPublisher *redis.Publisher
+	SftpClient   *sftp.Client
+	Viper        *viper.Viper
+	Ctx          context.Context
+}
 
-	c := consumer.NewUserConsumer(rmq, rdsPublisher, userUseCase, queueCfg, sftpClient)
+func wireUserModule(deps ModuleDeps) *usecase.UserUseCase {
+	userUseCase := usecase.NewUserUseCase(&repository.UserRepository{}, deps.DB)
 
-	go c.Start()
+	handler := consumer.NewUserConsumerHandler(deps.RdsPublisher, userUseCase, deps.SftpClient)
+
+	userConsumer := rabbitmq.NewRabbitMqConsumer(
+		configs.UserImportConsumer(deps.Viper),
+		handler.HandleMessage,
+	)
+
+	go func() {
+		if err := userConsumer.Run(deps.Ctx); err != nil {
+			log.Printf("user consumer stopped: %v", err)
+		}
+	}()
 
 	return userUseCase
 }
 
-func wireOrderModule(rmq *rabbitmq.RabbitMqConsumer, rdsPublisher *redis.Publisher, db *gorm.DB, userUseCase *usecase.UserUseCase, queueCfg *configs.RabbitMQQueue, sftpClient *sftp.Client) {
-	orderUseCase := usecase.NewOrderUseCase(&repository.OrderRepository{}, db, userUseCase)
+func wireOrderModule(deps ModuleDeps, userUseCase *usecase.UserUseCase) {
+	orderUseCase := usecase.NewOrderUseCase(&repository.OrderRepository{}, deps.DB, userUseCase)
 
-	c := consumer.NewOrderConsumer(rmq, rdsPublisher, orderUseCase, queueCfg, sftpClient)
+	handler := consumer.NewOrderConsumerHandler(deps.RdsPublisher, orderUseCase, deps.SftpClient)
 
-	go c.Start()
+	orderConsumer := rabbitmq.NewRabbitMqConsumer(
+		configs.OrderImportConsumer(deps.Viper),
+		handler.HandleMessage,
+	)
+
+	go func() {
+		if err := orderConsumer.Run(deps.Ctx); err != nil {
+			log.Printf("order consumer stopped: %v", err)
+		}
+	}()
 }

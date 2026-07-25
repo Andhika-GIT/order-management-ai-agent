@@ -5,19 +5,16 @@ import (
 	"fmt"
 
 	"github.com/Andhika-GIT/go-message-broker-monorepo/model"
-	"github.com/Andhika-GIT/go-message-broker-monorepo/pkg/rabbitmq"
 	"github.com/Andhika-GIT/go-message-broker-monorepo/repository"
 )
 
 type OrderUseCase struct {
 	Repository *repository.OrderRepository
-	rmq        *rabbitmq.RabbitMqProducer
 }
 
-func NewOrderUseCase(Repository *repository.OrderRepository, rmq *rabbitmq.RabbitMqProducer) *OrderUseCase {
+func NewOrderUseCase(Repository *repository.OrderRepository) *OrderUseCase {
 	return &OrderUseCase{
 		Repository: Repository,
-		rmq:        rmq,
 	}
 }
 

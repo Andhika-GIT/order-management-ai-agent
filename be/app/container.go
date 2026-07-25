@@ -3,7 +3,6 @@ package app
 import (
 	"github.com/Andhika-GIT/go-message-broker-monorepo/configs"
 	"github.com/Andhika-GIT/go-message-broker-monorepo/controller"
-	"github.com/Andhika-GIT/go-message-broker-monorepo/pkg/rabbitmq"
 	"github.com/Andhika-GIT/go-message-broker-monorepo/pkg/worker"
 	"github.com/Andhika-GIT/go-message-broker-monorepo/repository"
 	"github.com/Andhika-GIT/go-message-broker-monorepo/usecase"
@@ -11,25 +10,33 @@ import (
 	"gorm.io/gorm"
 )
 
-func wireOrderModule(r chi.Router, rmq *rabbitmq.RabbitMqProducer, uploadWorker *worker.UploadWorker, db *gorm.DB, cfg *configs.Config) *usecase.OrderUseCase {
-	repo := repository.NewOrderRepository(db)
-	uc := usecase.NewOrderUseCase(repo, rmq)
-	ctrl := controller.NewOrderController(uc, uploadWorker, &cfg.RabbitMQRoutingKey, cfg.SftpClient.Path)
-	registerOrderRoutes(r, ctrl)
+type ModuleDeps struct {
+	Router       chi.Router
+	DB           *gorm.DB
+	UploadWorker *worker.UploadWorker
+	RoutingKey   *configs.RabbitMQRoutingKey
+	SftpPath     string
+}
+
+func wireOrderModule(deps ModuleDeps) *usecase.OrderUseCase {
+	repo := repository.NewOrderRepository(deps.DB)
+	uc := usecase.NewOrderUseCase(repo)
+	ctrl := controller.NewOrderController(uc, deps.UploadWorker, deps.RoutingKey, deps.SftpPath)
+	registerOrderRoutes(deps.Router, ctrl)
 
 	return uc
 }
 
-func wireUserModule(r chi.Router, rmq *rabbitmq.RabbitMqProducer, uploadWorker *worker.UploadWorker, db *gorm.DB, cfg *configs.Config) *usecase.UserUseCase {
-	repo := repository.NewUserRepository(db)
-	uc := usecase.NewUserUseCase(repo, rmq, db)
-	ctrl := controller.NewUserController(uc, uploadWorker, &cfg.RabbitMQRoutingKey, cfg.SftpClient.Path)
-	registerUserRoutes(r, ctrl)
+func wireUserModule(deps ModuleDeps) *usecase.UserUseCase {
+	repo := repository.NewUserRepository(deps.DB)
+	uc := usecase.NewUserUseCase(repo, deps.DB)
+	ctrl := controller.NewUserController(uc, deps.UploadWorker, deps.RoutingKey, deps.SftpPath)
+	registerUserRoutes(deps.Router, ctrl)
 
 	return uc
 }
 
-func wireDashboardModule(r chi.Router, userUseCase *usecase.UserUseCase, orderUseCase *usecase.OrderUseCase) {
+func wireDashboardModule(deps ModuleDeps, userUseCase *usecase.UserUseCase, orderUseCase *usecase.OrderUseCase) {
 	ctrl := controller.NewDashboardController(userUseCase, orderUseCase)
-	registerDashboardRoutes(r, ctrl)
+	registerDashboardRoutes(deps.Router, ctrl)
 }

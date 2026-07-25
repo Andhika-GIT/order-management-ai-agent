@@ -1,6 +1,7 @@
 package app
 
 import (
+	"context"
 	"log"
 
 	"github.com/Andhika-GIT/go-message-broker-monorepo/configs"
@@ -13,22 +14,11 @@ import (
 
 func InitApp() *chi.Mux {
 	r := NewRouter()
+	ctx := context.Background()
 
 	v := configs.NewViper()
 	cfg := configs.InitConfig(v)
 	db := database.NewDatabase(&cfg.Database)
-	rmq, err := rabbitmq.NewRabbitMqProducer(cfg.RabbitMQConnectURL)
-
-	if err != nil {
-		log.Fatalf("failed to initialize RabbitMQ connection: %v", err)
-	}
-
-	err = InitQueue(rmq, cfg)
-
-	if err != nil {
-		log.Fatalf("failed to bind RabbitMQ queues: %v", err)
-
-	}
 
 	sftpClient, err := sftpclient.NewSFTPClient(&cfg.SftpClient)
 
@@ -36,12 +26,26 @@ func InitApp() *chi.Mux {
 		log.Fatalf("failed to bind to sftp client %v", err)
 	}
 
-	uploadWorker := worker.NewUploadWorker(sftpClient, rmq, 3)
-	orderUseCase := wireOrderModule(r, rmq, uploadWorker, db, cfg)
-	userUseCase := wireUserModule(r, rmq, uploadWorker, db, cfg)
-	wireDashboardModule(r, userUseCase, orderUseCase)
+	publisher, err := rabbitmq.NewPublisher(configs.Producer(v))
 
-	go uploadWorker.Start()
+	if err != nil {
+		log.Fatalf("failed to initialize RabbitMQ publisher: %v", err)
+	}
+
+	uploadWorker := worker.NewUploadWorker(sftpClient, publisher, 3)
+	uploadWorker.Start(ctx)
+
+	deps := ModuleDeps{
+		Router:       r,
+		DB:           db,
+		UploadWorker: uploadWorker,
+		RoutingKey:   &cfg.RabbitMQRoutingKey,
+		SftpPath:     cfg.SftpClient.Path,
+	}
+
+	orderUseCase := wireOrderModule(deps)
+	userUseCase := wireUserModule(deps)
+	wireDashboardModule(deps, userUseCase, orderUseCase)
 
 	return r
 }

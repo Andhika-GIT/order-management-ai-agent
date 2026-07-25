@@ -28,6 +28,14 @@ type RabbitMQQueue struct {
 	OrderExport       string
 }
 
+type RabbitMQConfig struct {
+	URL          string
+	Queue        string
+	RoutingKey   string
+	ExchangeName string
+	ExchangeType string
+}
+
 type RedisClientConfig struct {
 	Addr     string
 	Password string
