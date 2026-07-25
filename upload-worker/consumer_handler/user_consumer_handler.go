@@ -36,7 +36,7 @@ func (w *UserConsumer) HandleMessage(c context.Context, msg amqp091.Delivery) {
 	err := json.Unmarshal(msg.Body, &uploadMsg)
 
 	if err != nil {
-		log.Println("error when converting", err.Error())
+		log.Println("error when converting message json", err.Error())
 		_ = msg.Nack(false, false)
 		return
 	}
@@ -52,7 +52,7 @@ func (w *UserConsumer) HandleMessage(c context.Context, msg amqp091.Delivery) {
 	rows, err := excel.ReadExcel(remoteFile)
 
 	if err != nil {
-		log.Print(err.Error())
+		log.Printf("error when reading excel file: %v", err)
 		_ = msg.Nack(false, true)
 		return
 	}
@@ -62,7 +62,7 @@ func (w *UserConsumer) HandleMessage(c context.Context, msg amqp091.Delivery) {
 	err = w.UseCase.CreateNewUsers(c, newUsers)
 
 	if err != nil {
-		log.Print(err.Error())
+		log.Printf("error when creating users from excel: %v", err)
 		_ = msg.Nack(false, true)
 		return
 	}
@@ -70,7 +70,7 @@ func (w *UserConsumer) HandleMessage(c context.Context, msg amqp091.Delivery) {
 	err = w.RdsPublisher.PublishMessage(c, "notifications", fmt.Sprintf("successfully uploaded %s", uploadMsg.Filename))
 
 	if err != nil {
-		log.Print(err.Error())
+		log.Printf("error when publishing message: %v", err)
 	}
 
 	_ = msg.Ack(false)

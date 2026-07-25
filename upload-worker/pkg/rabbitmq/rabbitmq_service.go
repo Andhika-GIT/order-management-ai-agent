@@ -76,6 +76,18 @@ func (c *RabbitMqConsumer) Run(ctx context.Context) error {
 		return fmt.Errorf("queue declare: %w", err)
 	}
 
+	err = ch.QueueBind(
+		c.config.Queue,
+		c.config.RoutingKey,
+		c.config.ExchangeName,
+		false,
+		nil,
+	)
+
+	if err != nil {
+		return fmt.Errorf("queue bind: %w", err)
+	}
+
 	msgs, err := ch.Consume(c.config.Queue, "", false, false, false, false, nil)
 
 	if err != nil {
