@@ -1,4 +1,4 @@
-package redis
+package database
 
 import (
 	"github.com/Andhika-GIT/go-message-broker-monorepo/configs"

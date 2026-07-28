@@ -49,6 +49,16 @@ type SftpClientConfig struct {
 	Password string
 }
 
+type S3Config struct {
+	Endpoint     string
+	Region       string
+	AccessKey    string
+	SecretKey    string
+	Bucket       string
+	UseSSL       bool
+	UsePathStyle bool
+}
+
 type Config struct {
 	// RabbitMQ
 	RabbitMQConnectURL string
@@ -66,6 +76,9 @@ type Config struct {
 
 	// sftp/ssh
 	SftpClient SftpClientConfig
+
+	// S3
+	S3Config S3Config
 }
 
 func InitConfig(v *viper.Viper) *Config {
@@ -119,6 +132,16 @@ func InitConfig(v *viper.Viper) *Config {
 		Password: getOrDefaultString(v, "SFTP_PASSWORD", "pass"),
 	}
 
+	cfg.S3Config = S3Config{
+		Endpoint:     getOrDefaultString(v, "S3_ENDPOINT", ""),
+		Region:       getOrDefaultString(v, "S3_REGION", "us-east-1"),
+		AccessKey:    getOrDefaultString(v, "S3_ACCESS_KEY", ""),
+		SecretKey:    getOrDefaultString(v, "S3_SECRET_KEY", ""),
+		Bucket:       getOrDefaultString(v, "S3_BUCKET", ""),
+		UseSSL:       getOrDefaultBool(v, "S3_USE_SSL", true),
+		UsePathStyle: getOrDefaultBool(v, "S3_USE_PATH_STYLE", false),
+	}
+
 	return cfg
 }
 
@@ -136,4 +159,11 @@ func getOrDefaultInt(v *viper.Viper, key string, def int) int {
 		return def
 	}
 	return val
+}
+
+func getOrDefaultBool(v *viper.Viper, key string, def bool) bool {
+	if !v.IsSet(key) {
+		return def
+	}
+	return v.GetBool(key)
 }
