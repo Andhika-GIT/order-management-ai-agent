@@ -63,6 +63,18 @@ func (r *OrderRepository) FindAll(c context.Context, paginationReq *model.Pagina
 	}, nil
 }
 
+func (r *OrderRepository) FindById(c context.Context, orderID int64) (*model.Order, error) {
+	var order model.Order
+
+	err := r.DB.WithContext(c).First(&order, orderID).Error
+
+	if err != nil {
+		return nil, err
+	}
+
+	return &order, nil
+}
+
 func filterOrderQuery(filter *model.OrderFilter, query *gorm.DB) *gorm.DB {
 
 	if filter.Search != "" {

@@ -46,6 +46,19 @@ func (u *OrderUseCase) FindAllOrders(c context.Context, paginationReq *model.Pag
 
 }
 
+func (u *OrderUseCase) FindOrderByID(c context.Context, orderID int64) (*model.OrderResponse, error) {
+	order, err := u.Repository.FindById(c, orderID)
+
+	if err != nil {
+		return nil, err
+	}
+
+	resp := convertToOrderResponse(*order)
+
+	return &resp, nil
+
+}
+
 func convertToOrdersResponse(orders []model.Order) []model.OrderResponse {
 	var ordersResp []model.OrderResponse
 
@@ -61,4 +74,14 @@ func convertToOrdersResponse(orders []model.Order) []model.OrderResponse {
 	}
 
 	return ordersResp
+}
+
+func convertToOrderResponse(order model.Order) model.OrderResponse {
+
+	return model.OrderResponse{
+		ID:          order.ID,
+		Email:       order.User.Email,
+		ProductName: order.ProductName,
+		Quantity:    order.Quantity,
+	}
 }

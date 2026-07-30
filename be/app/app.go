@@ -56,7 +56,7 @@ func InitApp() *chi.Mux {
 	orderUseCase := wireOrderModule(deps)
 	userUseCase := wireUserModule(deps)
 	wireDashboardModule(deps, userUseCase, orderUseCase)
-	wireUploadModule(deps)
+	wireUploadModule(deps, orderUseCase)
 
 	return r
 }

@@ -21,4 +21,5 @@ func registerDashboardRoutes(r chi.Router, c *controller.DashboardController) {
 
 func registerUploadRoutes(r chi.Router, c *controller.UploadController) {
 	r.Post("/upload/presign", c.GetPresignedUploadURL)
+	r.Post("/upload/order_image/presign", c.GetUploadOrderImagePresignedURL)
 }

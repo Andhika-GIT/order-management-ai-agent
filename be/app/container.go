@@ -43,7 +43,7 @@ func wireDashboardModule(deps ModuleDeps, userUseCase *usecase.UserUseCase, orde
 	registerDashboardRoutes(deps.Router, ctrl)
 }
 
-func wireUploadModule(deps ModuleDeps) {
-	ctrl := controller.NewUploadController(deps.S3Helper)
+func wireUploadModule(deps ModuleDeps, orderUsecase *usecase.OrderUseCase) {
+	ctrl := controller.NewUploadController(deps.S3Helper, *orderUsecase)
 	registerUploadRoutes(deps.Router, ctrl)
 }
