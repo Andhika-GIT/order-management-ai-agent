@@ -6,6 +6,7 @@ import (
 
 	"github.com/Andhika-GIT/go-message-broker-monorepo/configs"
 	"github.com/Andhika-GIT/go-message-broker-monorepo/database"
+	"github.com/Andhika-GIT/go-message-broker-monorepo/pkg/S3_helper"
 	"github.com/Andhika-GIT/go-message-broker-monorepo/pkg/rabbitmq"
 	"github.com/Andhika-GIT/go-message-broker-monorepo/pkg/sftpclient"
 	"github.com/Andhika-GIT/go-message-broker-monorepo/pkg/worker"
@@ -35,17 +36,27 @@ func InitApp() *chi.Mux {
 	uploadWorker := worker.NewUploadWorker(sftpClient, publisher, 3)
 	uploadWorker.Start(ctx)
 
+	s3Client, err := database.NewS3Client(cfg.S3Config, ctx)
+
+	if err != nil {
+		log.Fatalf("failed to connect to s3: %v", err)
+	}
+
+	s3Helper := S3_helper.NewS3Helper(s3Client, cfg.S3Config.Bucket)
+
 	deps := ModuleDeps{
 		Router:       r,
 		DB:           db,
 		UploadWorker: uploadWorker,
 		RoutingKey:   &cfg.RabbitMQRoutingKey,
 		SftpPath:     cfg.SftpClient.Path,
+		S3Helper:     s3Helper,
 	}
 
 	orderUseCase := wireOrderModule(deps)
 	userUseCase := wireUserModule(deps)
 	wireDashboardModule(deps, userUseCase, orderUseCase)
+	wireUploadModule(deps)
 
 	return r
 }

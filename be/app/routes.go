@@ -18,3 +18,7 @@ func registerUserRoutes(r chi.Router, c *controller.UserController) {
 func registerDashboardRoutes(r chi.Router, c *controller.DashboardController) {
 	r.Get("/dashboard", c.GetDataSummary)
 }
+
+func registerUploadRoutes(r chi.Router, c *controller.UploadController) {
+	r.Post("/upload/presign", c.GetPresignedUploadURL)
+}

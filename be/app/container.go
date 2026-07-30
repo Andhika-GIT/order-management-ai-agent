@@ -3,6 +3,7 @@ package app
 import (
 	"github.com/Andhika-GIT/go-message-broker-monorepo/configs"
 	"github.com/Andhika-GIT/go-message-broker-monorepo/controller"
+	"github.com/Andhika-GIT/go-message-broker-monorepo/pkg/S3_helper"
 	"github.com/Andhika-GIT/go-message-broker-monorepo/pkg/worker"
 	"github.com/Andhika-GIT/go-message-broker-monorepo/repository"
 	"github.com/Andhika-GIT/go-message-broker-monorepo/usecase"
@@ -16,6 +17,7 @@ type ModuleDeps struct {
 	UploadWorker *worker.UploadWorker
 	RoutingKey   *configs.RabbitMQRoutingKey
 	SftpPath     string
+	S3Helper     S3_helper.S3Helper
 }
 
 func wireOrderModule(deps ModuleDeps) *usecase.OrderUseCase {
@@ -39,4 +41,9 @@ func wireUserModule(deps ModuleDeps) *usecase.UserUseCase {
 func wireDashboardModule(deps ModuleDeps, userUseCase *usecase.UserUseCase, orderUseCase *usecase.OrderUseCase) {
 	ctrl := controller.NewDashboardController(userUseCase, orderUseCase)
 	registerDashboardRoutes(deps.Router, ctrl)
+}
+
+func wireUploadModule(deps ModuleDeps) {
+	ctrl := controller.NewUploadController(deps.S3Helper)
+	registerUploadRoutes(deps.Router, ctrl)
 }
