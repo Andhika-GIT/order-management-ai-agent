@@ -70,6 +70,7 @@ func (h *UploadController) GetUploadOrderImagePresignedURL(w http.ResponseWriter
 	if err != nil {
 		errMsg := fmt.Sprintf("error when find order: %v", err)
 		httputil.SendJsonErrorResponse(w, model.WriteError(400, errMsg), nil)
+		return
 	}
 
 	key := fmt.Sprintf("uploads/%d/%d-%s", order.ID, time.Now().UnixNano(), req.Filename)

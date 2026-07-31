@@ -97,8 +97,25 @@ services:
       RABBITMQ_DEFAULT_VHOST: /
     volumes:
       - rabbitmq_data:/var/lib/rabbitmq/mnesia
+  minio:
+    image: minio/minio
+    container_name: gmbm-minio-dev
+    restart: unless-stopped
+    stop_grace_period: 3s
+    environment:
+      - MINIO_ROOT_USER=root
+      - MINIO_ROOT_PASSWORD=secret123
+    volumes:
+      - minio_data:/data
+    ports:
+      - "19000:9000"
+      - "19001:9001"
+    command: [ "server", "--console-address", ":9001", "/data" ]
+
+
 
 volumes:
   pgdata-dev:
   redis-data:
   rabbitmq_data:
+  minio_data:
