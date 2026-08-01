@@ -11,12 +11,11 @@ type DatabaseConfig struct {
 }
 
 type RabbitMQRoutingKey struct {
-	UserDirectImport  string
-	UserSftpImport    string
-	UserExport        string
-	OrderDirectImport string
-	OrderImport       string
-	OrderExport       string
+	UserImport     string
+	UserSftpImport string
+	UserExport     string
+	OrderImport    string
+	OrderExport    string
 }
 
 type RabbitMQConfig struct {
@@ -71,12 +70,11 @@ func InitConfig(v *viper.Viper) *Config {
 
 	// --- RabbitMQ Routing Keys ---
 	cfg.RabbitMQRoutingKey = RabbitMQRoutingKey{
-		UserDirectImport:  getOrDefaultString(v, "MQ_RK_USER_DIRECT_IMPORT", "user.import.direct"),
-		UserSftpImport:    getOrDefaultString(v, "MQ_RK_USER_SFTP_IMPORT", "user.import.sftp"),
-		UserExport:        getOrDefaultString(v, "MQ_RK_USER_EXPORT", "user.export"),
-		OrderDirectImport: getOrDefaultString(v, "MQ_RK_ORDER_DIRECT_IMPORT", "order.import.direct"),
-		OrderImport:       getOrDefaultString(v, "MQ_RK_ORDER_IMPORT", "order.import"),
-		OrderExport:       getOrDefaultString(v, "MQ_RK_ORDER_EXPORT", "order.export"),
+		UserImport:     getOrDefaultString(v, "MQ_RK_USER_IMPORT", "user.import"),
+		UserSftpImport: getOrDefaultString(v, "MQ_RK_USER_SFTP_IMPORT", "user.import.sftp"),
+		UserExport:     getOrDefaultString(v, "MQ_RK_USER_EXPORT", "user.export"),
+		OrderImport:    getOrDefaultString(v, "MQ_RK_ORDER_IMPORT", "order.import"),
+		OrderExport:    getOrDefaultString(v, "MQ_RK_ORDER_EXPORT", "order.export"),
 	}
 
 	// --- Database ---

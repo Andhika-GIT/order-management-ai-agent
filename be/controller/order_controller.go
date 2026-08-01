@@ -78,7 +78,7 @@ func (h *OrderController) UploadOrder(w http.ResponseWriter, r *http.Request) {
 		Key:             key,
 		Bucket:          h.config.S3Config.Bucket,
 		ContentType:     "application/octet-stream",
-		QueueRoutingKey: h.config.RabbitMQRoutingKey.OrderDirectImport,
+		QueueRoutingKey: h.config.RabbitMQRoutingKey.OrderImport,
 	})
 
 	httputil.SendJsonResponse(w, 200, "success", nil)
