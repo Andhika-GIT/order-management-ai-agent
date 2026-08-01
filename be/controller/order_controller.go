@@ -1,8 +1,11 @@
 package controller
 
 import (
+	"bytes"
 	"fmt"
+	"io"
 	"net/http"
+	"time"
 
 	"github.com/Andhika-GIT/go-message-broker-monorepo/configs"
 	"github.com/Andhika-GIT/go-message-broker-monorepo/model"
@@ -15,16 +18,14 @@ import (
 type OrderController struct {
 	usecase      *usecase.OrderUseCase
 	uploadWorker *worker.UploadWorker
-	mqRoutingKey *configs.RabbitMQRoutingKey
-	sftpPath     string
+	config       *configs.Config
 }
 
-func NewOrderController(usecase *usecase.OrderUseCase, uploadWorker *worker.UploadWorker, mqRoutingKey *configs.RabbitMQRoutingKey, sftpPath string) *OrderController {
+func NewOrderController(usecase *usecase.OrderUseCase, uploadWorker *worker.UploadWorker, config *configs.Config) *OrderController {
 	return &OrderController{
 		usecase:      usecase,
 		uploadWorker: uploadWorker,
-		mqRoutingKey: mqRoutingKey,
-		sftpPath:     sftpPath,
+		config:       config,
 	}
 }
 
@@ -50,24 +51,34 @@ func (h *OrderController) UploadOrder(w http.ResponseWriter, r *http.Request) {
 	file, header, err := r.FormFile("file")
 
 	if err != nil {
-		model.WriteError(500, fmt.Sprintf("failed to read file %s", err.Error()))
+		httputil.SendJsonErrorResponse(w, model.WriteError(500, fmt.Sprintf("failed to read file %s", err.Error())), nil)
 		return
 	}
 
 	defer file.Close()
 
-	isFileExtensionCorrect := validator.IsAllowedExtension(header.Filename)
+	data, err := io.ReadAll(file)
 
-	if !isFileExtensionCorrect {
-		model.WriteError(400, "invalid file extension")
+	if err != nil {
+		httputil.SendJsonErrorResponse(w, model.WriteError(500, "failed to read file"), nil)
 		return
 	}
 
+	isFileExtensionCorrect := validator.IsAllowedExtension(header.Filename)
+
+	if !isFileExtensionCorrect {
+		httputil.SendJsonErrorResponse(w, model.WriteError(400, "invalid file extension"), nil)
+		return
+	}
+
+	key := fmt.Sprintf("upload-temp/order/%d-%s", time.Now().UnixNano(), header.Filename)
+
 	h.uploadWorker.Queue(worker.UploadTask{
-		File:            file,
-		Filename:        header.Filename,
-		Filepath:        h.sftpPath,
-		QueueRoutingKey: h.mqRoutingKey.OrderDirectImport,
+		File:            bytes.NewReader(data),
+		Key:             key,
+		Bucket:          h.config.S3Config.Bucket,
+		ContentType:     "application/octet-stream",
+		QueueRoutingKey: h.config.RabbitMQRoutingKey.OrderDirectImport,
 	})
 
 	httputil.SendJsonResponse(w, 200, "success", nil)
