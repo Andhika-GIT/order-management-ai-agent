@@ -42,13 +42,6 @@ type RedisClientConfig struct {
 	DB       int
 }
 
-type SftpClientConfig struct {
-	Host     string
-	Port     int
-	Username string
-	Password string
-}
-
 type S3Config struct {
 	Endpoint     string
 	Region       string
@@ -73,9 +66,6 @@ type Config struct {
 
 	// redis client
 	RedisClient RedisClientConfig
-
-	// sftp/ssh
-	SftpClient SftpClientConfig
 
 	// S3
 	S3Config S3Config
@@ -122,14 +112,6 @@ func InitConfig(v *viper.Viper) *Config {
 		Addr:     getOrDefaultString(v, "REDIS_ADDR", "localhost:6379"),
 		Password: getOrDefaultString(v, "REDIS_PASSWORD", ""),
 		DB:       getOrDefaultInt(v, "REDIS_DB", 0),
-	}
-
-	// --- SFTP ---
-	cfg.SftpClient = SftpClientConfig{
-		Host:     getOrDefaultString(v, "SFTP_HOST", "localhost"),
-		Port:     getOrDefaultInt(v, "SFTP_PORT", 2222),
-		Username: getOrDefaultString(v, "SFTP_USERNAME", "foo"),
-		Password: getOrDefaultString(v, "SFTP_PASSWORD", "pass"),
 	}
 
 	cfg.S3Config = S3Config{

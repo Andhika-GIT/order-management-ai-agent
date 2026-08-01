@@ -1,6 +1,6 @@
 package model
 
 type UploadMessage struct {
-	Filename string `json:"filename"`
-	Filepath string `json:"filepath"`
+	Key    string `json:"key"`
+	Bucket string `json:"bucket"`
 }
