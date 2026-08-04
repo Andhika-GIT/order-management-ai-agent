@@ -75,6 +75,10 @@ func (r *OrderRepository) FindById(c context.Context, orderID int64) (*model.Ord
 	return &order, nil
 }
 
+func (r *OrderRepository) UpdateOrderAttachmentKey(c context.Context, orderID int64, attachment_key string) error {
+	return r.DB.WithContext(c).Model(&model.Order{}).Where("id = ?", orderID).Update("attachment_key", attachment_key).Error
+}
+
 func filterOrderQuery(filter *model.OrderFilter, query *gorm.DB) *gorm.DB {
 
 	if filter.Search != "" {

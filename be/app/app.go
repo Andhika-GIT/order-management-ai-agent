@@ -32,7 +32,7 @@ func InitApp() *chi.Mux {
 		log.Fatalf("failed to connect to s3: %v", err)
 	}
 
-	s3Helper := S3_helper.NewS3Helper(s3Client, cfg.S3Config.Bucket)
+	s3Helper := S3_helper.NewS3Helper(s3Client, cfg.S3Config.Bucket, cfg.S3Config.PublicEndpoint)
 
 	uploadWorker := worker.NewUploadWorker(s3Helper, publisher, 3)
 	uploadWorker.Start(ctx)

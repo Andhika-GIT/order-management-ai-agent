@@ -59,6 +59,10 @@ func (u *OrderUseCase) FindOrderByID(c context.Context, orderID int64) (*model.O
 
 }
 
+func (u *OrderUseCase) InsertOrderAttachmentKey(c context.Context, orderID int64, attachment_key string) error {
+	return u.Repository.UpdateOrderAttachmentKey(c, orderID, attachment_key)
+}
+
 func convertToOrdersResponse(orders []model.Order) []model.OrderResponse {
 	var ordersResp []model.OrderResponse
 
@@ -79,9 +83,10 @@ func convertToOrdersResponse(orders []model.Order) []model.OrderResponse {
 func convertToOrderResponse(order model.Order) model.OrderResponse {
 
 	return model.OrderResponse{
-		ID:          order.ID,
-		Email:       order.User.Email,
-		ProductName: order.ProductName,
-		Quantity:    order.Quantity,
+		ID:            order.ID,
+		Email:         order.User.Email,
+		ProductName:   order.ProductName,
+		Quantity:      order.Quantity,
+		AttachmentKey: order.AttachmentKey,
 	}
 }

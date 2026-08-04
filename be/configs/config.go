@@ -39,13 +39,14 @@ type SftpClientConfig struct {
 }
 
 type S3Config struct {
-	Endpoint     string
-	Region       string
-	AccessKey    string
-	SecretKey    string
-	Bucket       string
-	UseSSL       bool
-	UsePathStyle bool
+	Endpoint       string
+	PublicEndpoint string
+	Region         string
+	AccessKey      string
+	SecretKey      string
+	Bucket         string
+	UseSSL         bool
+	UsePathStyle   bool
 }
 
 type Config struct {
@@ -104,13 +105,14 @@ func InitConfig(v *viper.Viper) *Config {
 
 	// --- S3 ---
 	cfg.S3Config = S3Config{
-		Endpoint:     getOrDefaultString(v, "S3_ENDPOINT", ""),
-		Region:       getOrDefaultString(v, "S3_REGION", "us-east-1"),
-		AccessKey:    getOrDefaultString(v, "S3_ACCESS_KEY", ""),
-		SecretKey:    getOrDefaultString(v, "S3_SECRET_KEY", ""),
-		Bucket:       getOrDefaultString(v, "S3_BUCKET", ""),
-		UseSSL:       getOrDefaultBool(v, "S3_USE_SSL", true),
-		UsePathStyle: getOrDefaultBool(v, "S3_USE_PATH_STYLE", false),
+		Endpoint:       getOrDefaultString(v, "S3_ENDPOINT", ""),
+		PublicEndpoint: getOrDefaultString(v, "S3_PUBLIC_ENDPOINT", ""),
+		Region:         getOrDefaultString(v, "S3_REGION", "us-east-1"),
+		AccessKey:      getOrDefaultString(v, "S3_ACCESS_KEY", ""),
+		SecretKey:      getOrDefaultString(v, "S3_SECRET_KEY", ""),
+		Bucket:         getOrDefaultString(v, "S3_BUCKET", ""),
+		UseSSL:         getOrDefaultBool(v, "S3_USE_SSL", true),
+		UsePathStyle:   getOrDefaultBool(v, "S3_USE_PATH_STYLE", false),
 	}
 
 	return cfg
