@@ -16,6 +16,11 @@ type OrderImagePresignRequest struct {
 	OrderID     int64  `json:"order_id"`
 }
 
+type OrderAttachmentConfirmRequest struct {
+	Key     string `json:"key"`
+	OrderID int64  `json:"order_id"`
+}
+
 type PresignResponse struct {
 	URL string `json:"url"`
 	Key string `json:"key"`

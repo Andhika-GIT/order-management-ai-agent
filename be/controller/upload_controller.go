@@ -84,3 +84,34 @@ func (h *UploadController) GetUploadOrderImagePresignedURL(w http.ResponseWriter
 
 	httputil.SendJsonResponse(w, 200, "success", model.PresignResponse{URL: url, Key: key})
 }
+
+func (h *UploadController) ConfirmUploadOrderAttachment(w http.ResponseWriter, r *http.Request) {
+	var req model.OrderAttachmentConfirmRequest
+
+	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
+		httputil.SendJsonErrorResponse(w, model.WriteError(400, "invalid request body"), nil)
+		return
+	}
+
+	order, err := h.orderUsecase.FindOrderByID(r.Context(), req.OrderID)
+
+	if err != nil {
+		errMsg := fmt.Sprintf("error when find order: %v", err)
+		httputil.SendJsonErrorResponse(w, model.WriteError(400, errMsg), nil)
+		return
+	}
+
+	if order.AttachmentKey != nil {
+		h.s3Helper.Delete(r.Context(), *order.AttachmentKey)
+	}
+
+	err = h.orderUsecase.InsertOrderAttachmentKey(r.Context(), order.ID, req.Key)
+
+	if err != nil {
+		httputil.SendJsonErrorResponse(w, model.WriteError(500, fmt.Sprintf("failed to save new attachment key : %s", err.Error())), nil)
+		return
+	}
+
+	httputil.SendJsonResponse(w, 200, "success", nil)
+
+}
