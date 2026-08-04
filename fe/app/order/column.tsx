@@ -1,5 +1,6 @@
 'use client'
 
+import { useState } from "react"
 import { Order } from "@/lib/schemas"
 import { Checkbox } from "@/components/ui/checkbox"
 import { ColumnDef } from "@tanstack/react-table"
@@ -11,7 +12,39 @@ import {
 } from "@/components/ui/dropdown-menu"
 import { Button } from "@/components/ui/button"
 import { IconDotsVertical } from "@tabler/icons-react"
+import { UploadAttachmentModal } from "@/components/molecules"
 import z from "zod"
+
+const OrderActionsCell: React.FC<{ order: Order }> = ({ order }) => {
+  const [open, setOpen] = useState(false)
+
+  return (
+    <>
+      <DropdownMenu>
+        <DropdownMenuTrigger asChild>
+          <Button
+            variant="ghost"
+            className="data-[state=open]:bg-muted text-muted-foreground flex size-8"
+            size="icon"
+          >
+            <IconDotsVertical />
+            <span className="sr-only">Open menu</span>
+          </Button>
+        </DropdownMenuTrigger>
+        <DropdownMenuContent align="end" className="w-40">
+          <DropdownMenuItem>Edit</DropdownMenuItem>
+          <DropdownMenuItem>Make a copy</DropdownMenuItem>
+          <DropdownMenuItem>Favorite</DropdownMenuItem>
+          <DropdownMenuSeparator />
+          <DropdownMenuItem onClick={() => setOpen(true)}>Upload Attachment</DropdownMenuItem>
+          <DropdownMenuSeparator />
+          <DropdownMenuItem variant="destructive">Delete</DropdownMenuItem>
+        </DropdownMenuContent>
+      </DropdownMenu>
+      <UploadAttachmentModal orderId={order.id} open={open} onOpenChange={setOpen} />
+    </>
+  )
+}
 
 export const columns: ColumnDef<Order>[] = [
 
@@ -65,26 +98,6 @@ export const columns: ColumnDef<Order>[] = [
   
   {
     id: "actions",
-    cell: () => (
-      <DropdownMenu>
-        <DropdownMenuTrigger asChild>
-          <Button
-            variant="ghost"
-            className="data-[state=open]:bg-muted text-muted-foreground flex size-8"
-            size="icon"
-          >
-            <IconDotsVertical />
-            <span className="sr-only">Open menu</span>
-          </Button>
-        </DropdownMenuTrigger>
-        <DropdownMenuContent align="end" className="w-32">
-          <DropdownMenuItem>Edit</DropdownMenuItem>
-          <DropdownMenuItem>Make a copy</DropdownMenuItem>
-          <DropdownMenuItem>Favorite</DropdownMenuItem>
-          <DropdownMenuSeparator />
-          <DropdownMenuItem variant="destructive">Delete</DropdownMenuItem>
-        </DropdownMenuContent>
-      </DropdownMenu>
-    ),
+    cell: ({ row }) => <OrderActionsCell order={row.original} />,
   },
 ]
