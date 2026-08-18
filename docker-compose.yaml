@@ -76,15 +76,6 @@ services:
     depends_on:
       - redis-pubsub
 
-  sftp:
-    image: atmoz/sftp
-    volumes:
-        - ./upload:/home/foo/upload
-    ports:
-        - "2222:22"
-    command: foo:pass:1001
-    container_name: sftp-dev
-
   rabbitmq:
     image: rabbitmq:3-management
     hostname: dev-rabbitmq-host

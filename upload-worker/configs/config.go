@@ -11,19 +11,17 @@ type DatabaseConfig struct {
 }
 
 type RabbitMQRoutingKey struct {
-	UserImport     string
-	UserSftpImport string
-	UserExport     string
-	OrderImport    string
-	OrderExport    string
+	UserImport  string
+	UserExport  string
+	OrderImport string
+	OrderExport string
 }
 
 type RabbitMQQueue struct {
-	UserImport     string
-	UserSftpImport string
-	UserExport     string
-	OrderImport    string
-	OrderExport    string
+	UserImport  string
+	UserExport  string
+	OrderImport string
+	OrderExport string
 }
 
 type RabbitMQConfig struct {
@@ -78,20 +76,18 @@ func InitConfig(v *viper.Viper) *Config {
 
 	// --- RabbitMQ Routing Keys ---
 	cfg.RabbitMQRoutingKey = RabbitMQRoutingKey{
-		UserImport:     getOrDefaultString(v, "MQ_RK_USER_IMPORT", "user.import"),
-		UserSftpImport: getOrDefaultString(v, "MQ_RK_USER_SFTP_IMPORT", "user.import.sftp"),
-		UserExport:     getOrDefaultString(v, "MQ_RK_USER_EXPORT", "user.export"),
-		OrderImport:    getOrDefaultString(v, "MQ_RK_ORDER_IMPORT", "order.import"),
-		OrderExport:    getOrDefaultString(v, "MQ_RK_ORDER_EXPORT", "order.export"),
+		UserImport:  getOrDefaultString(v, "MQ_RK_USER_IMPORT", "user.import"),
+		UserExport:  getOrDefaultString(v, "MQ_RK_USER_EXPORT", "user.export"),
+		OrderImport: getOrDefaultString(v, "MQ_RK_ORDER_IMPORT", "order.import"),
+		OrderExport: getOrDefaultString(v, "MQ_RK_ORDER_EXPORT", "order.export"),
 	}
 
 	// --- RabbitMQ Queues ---
 	cfg.RabbitMQQueue = RabbitMQQueue{
-		UserImport:     getOrDefaultString(v, "MQ_Q_USER_IMPORT", "user.import.q"),
-		UserSftpImport: getOrDefaultString(v, "MQ_Q_USER_SFTP_IMPORT", "user.import.sftp.q"),
-		UserExport:     getOrDefaultString(v, "MQ_Q_USER_EXPORT", "user.export.q"),
-		OrderImport:    getOrDefaultString(v, "MQ_Q_ORDER_IMPORT", "order.import.q"),
-		OrderExport:    getOrDefaultString(v, "MQ_Q_ORDER_EXPORT", "order.export.q"),
+		UserImport:  getOrDefaultString(v, "MQ_Q_USER_IMPORT", "user.import.q"),
+		UserExport:  getOrDefaultString(v, "MQ_Q_USER_EXPORT", "user.export.q"),
+		OrderImport: getOrDefaultString(v, "MQ_Q_ORDER_IMPORT", "order.import.q"),
+		OrderExport: getOrDefaultString(v, "MQ_Q_ORDER_EXPORT", "order.export.q"),
 	}
 
 	// --- Database ---

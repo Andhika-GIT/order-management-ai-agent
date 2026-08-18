@@ -11,11 +11,10 @@ type DatabaseConfig struct {
 }
 
 type RabbitMQRoutingKey struct {
-	UserImport     string
-	UserSftpImport string
-	UserExport     string
-	OrderImport    string
-	OrderExport    string
+	UserImport  string
+	UserExport  string
+	OrderImport string
+	OrderExport string
 }
 
 type RabbitMQConfig struct {
@@ -28,14 +27,6 @@ type RedisClientConfig struct {
 	Addr     string
 	Password string
 	DB       int
-}
-
-type SftpClientConfig struct {
-	Host     string
-	Port     int
-	Username string
-	Password string
-	Path     string
 }
 
 type S3Config struct {
@@ -59,9 +50,6 @@ type Config struct {
 	// redis client
 	RedisClient RedisClientConfig
 
-	// sftp/ssh
-	SftpClient SftpClientConfig
-
 	// S3
 	S3Config S3Config
 }
@@ -71,11 +59,10 @@ func InitConfig(v *viper.Viper) *Config {
 
 	// --- RabbitMQ Routing Keys ---
 	cfg.RabbitMQRoutingKey = RabbitMQRoutingKey{
-		UserImport:     getOrDefaultString(v, "MQ_RK_USER_IMPORT", "user.import"),
-		UserSftpImport: getOrDefaultString(v, "MQ_RK_USER_SFTP_IMPORT", "user.import.sftp"),
-		UserExport:     getOrDefaultString(v, "MQ_RK_USER_EXPORT", "user.export"),
-		OrderImport:    getOrDefaultString(v, "MQ_RK_ORDER_IMPORT", "order.import"),
-		OrderExport:    getOrDefaultString(v, "MQ_RK_ORDER_EXPORT", "order.export"),
+		UserImport:  getOrDefaultString(v, "MQ_RK_USER_IMPORT", "user.import"),
+		UserExport:  getOrDefaultString(v, "MQ_RK_USER_EXPORT", "user.export"),
+		OrderImport: getOrDefaultString(v, "MQ_RK_ORDER_IMPORT", "order.import"),
+		OrderExport: getOrDefaultString(v, "MQ_RK_ORDER_EXPORT", "order.export"),
 	}
 
 	// --- Database ---
@@ -92,15 +79,6 @@ func InitConfig(v *viper.Viper) *Config {
 		Addr:     getOrDefaultString(v, "REDIS_ADDR", "localhost:6379"),
 		Password: getOrDefaultString(v, "REDIS_PASSWORD", ""),
 		DB:       getOrDefaultInt(v, "REDIS_DB", 0),
-	}
-
-	// --- SFTP ---
-	cfg.SftpClient = SftpClientConfig{
-		Host:     getOrDefaultString(v, "SFTP_HOST", "localhost"),
-		Port:     getOrDefaultInt(v, "SFTP_PORT", 2222),
-		Username: getOrDefaultString(v, "SFTP_USERNAME", "foo"),
-		Password: getOrDefaultString(v, "SFTP_PASSWORD", "pass"),
-		Path:     getOrDefaultString(v, "SFTP_PATH", "upload"),
 	}
 
 	// --- S3 ---
