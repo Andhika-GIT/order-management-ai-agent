@@ -3,13 +3,14 @@ package model
 import "time"
 
 type Order struct {
-	ID          int64     `json:"id" gorm:"primary_key;column:id"`
-	UserId      int64     `json:"user_id" gorm:"column:user_id"`
-	ProductName string    `json:"product_name" gorm:"column:product_name"`
-	Quantity    int64     `json:"quantity" gorm:"column:quantity"`
-	Status      string    `json:"status" gorm:"column:status"`
-	CreatedAt   time.Time `json:"created_at" gorm:"column:created_at;autoCreateTime"`
-	UpdatedAt   time.Time `json:"updated_at" gorm:"column:updated_at;autoCreateTime"`
+	ID            int64     `json:"id" gorm:"primary_key;column:id"`
+	UserId        int64     `json:"user_id" gorm:"column:user_id"`
+	ProductName   string    `json:"product_name" gorm:"column:product_name"`
+	Quantity      int64     `json:"quantity" gorm:"column:quantity"`
+	Status        string    `json:"status" gorm:"column:status"`
+	CreatedAt     time.Time `json:"created_at" gorm:"column:created_at;autoCreateTime"`
+	UpdatedAt     time.Time `json:"updated_at" gorm:"column:updated_at;autoCreateTime"`
+	AttachmentKey *string   `json:"attachment_key" gorm:"column:attachment_key"`
 
 	// user relationship
 	User *User `json:"user,omitempty" gorm:"foreignKey:UserId;references:ID"`
@@ -26,10 +27,11 @@ type OrderImport struct {
 }
 
 type OrderResponse struct {
-	ID          int64  `json:"id"`
-	Email       string `json:"email"`
-	ProductName string `json:"product_name"`
-	Quantity    int64  `json:"quantity"`
+	ID            int64   `json:"id"`
+	Email         string  `json:"email"`
+	ProductName   string  `json:"product_name"`
+	Quantity      int64   `json:"quantity"`
+	AttachmentKey *string `json:"attachment_key"`
 }
 
 type OrderFilter struct {

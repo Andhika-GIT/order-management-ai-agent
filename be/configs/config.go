@@ -11,12 +11,10 @@ type DatabaseConfig struct {
 }
 
 type RabbitMQRoutingKey struct {
-	UserDirectImport  string
-	UserSftpImport    string
-	UserExport        string
-	OrderDirectImport string
-	OrderImport       string
-	OrderExport       string
+	UserImport  string
+	UserExport  string
+	OrderImport string
+	OrderExport string
 }
 
 type RabbitMQConfig struct {
@@ -31,12 +29,15 @@ type RedisClientConfig struct {
 	DB       int
 }
 
-type SftpClientConfig struct {
-	Host     string
-	Port     int
-	Username string
-	Password string
-	Path     string
+type S3Config struct {
+	Endpoint       string
+	PublicEndpoint string
+	Region         string
+	AccessKey      string
+	SecretKey      string
+	Bucket         string
+	UseSSL         bool
+	UsePathStyle   bool
 }
 
 type Config struct {
@@ -49,8 +50,8 @@ type Config struct {
 	// redis client
 	RedisClient RedisClientConfig
 
-	// sftp/ssh
-	SftpClient SftpClientConfig
+	// S3
+	S3Config S3Config
 }
 
 func InitConfig(v *viper.Viper) *Config {
@@ -58,12 +59,10 @@ func InitConfig(v *viper.Viper) *Config {
 
 	// --- RabbitMQ Routing Keys ---
 	cfg.RabbitMQRoutingKey = RabbitMQRoutingKey{
-		UserDirectImport:  getOrDefaultString(v, "MQ_RK_USER_DIRECT_IMPORT", "user.import.direct"),
-		UserSftpImport:    getOrDefaultString(v, "MQ_RK_USER_SFTP_IMPORT", "user.import.sftp"),
-		UserExport:        getOrDefaultString(v, "MQ_RK_USER_EXPORT", "user.export"),
-		OrderDirectImport: getOrDefaultString(v, "MQ_RK_ORDER_DIRECT_IMPORT", "order.import.direct"),
-		OrderImport:       getOrDefaultString(v, "MQ_RK_ORDER_IMPORT", "order.import"),
-		OrderExport:       getOrDefaultString(v, "MQ_RK_ORDER_EXPORT", "order.export"),
+		UserImport:  getOrDefaultString(v, "MQ_RK_USER_IMPORT", "user.import"),
+		UserExport:  getOrDefaultString(v, "MQ_RK_USER_EXPORT", "user.export"),
+		OrderImport: getOrDefaultString(v, "MQ_RK_ORDER_IMPORT", "order.import"),
+		OrderExport: getOrDefaultString(v, "MQ_RK_ORDER_EXPORT", "order.export"),
 	}
 
 	// --- Database ---
@@ -82,13 +81,16 @@ func InitConfig(v *viper.Viper) *Config {
 		DB:       getOrDefaultInt(v, "REDIS_DB", 0),
 	}
 
-	// --- SFTP ---
-	cfg.SftpClient = SftpClientConfig{
-		Host:     getOrDefaultString(v, "SFTP_HOST", "localhost"),
-		Port:     getOrDefaultInt(v, "SFTP_PORT", 2222),
-		Username: getOrDefaultString(v, "SFTP_USERNAME", "foo"),
-		Password: getOrDefaultString(v, "SFTP_PASSWORD", "pass"),
-		Path:     getOrDefaultString(v, "SFTP_PATH", "upload"),
+	// --- S3 ---
+	cfg.S3Config = S3Config{
+		Endpoint:       getOrDefaultString(v, "S3_ENDPOINT", ""),
+		PublicEndpoint: getOrDefaultString(v, "S3_PUBLIC_ENDPOINT", ""),
+		Region:         getOrDefaultString(v, "S3_REGION", "us-east-1"),
+		AccessKey:      getOrDefaultString(v, "S3_ACCESS_KEY", ""),
+		SecretKey:      getOrDefaultString(v, "S3_SECRET_KEY", ""),
+		Bucket:         getOrDefaultString(v, "S3_BUCKET", ""),
+		UseSSL:         getOrDefaultBool(v, "S3_USE_SSL", true),
+		UsePathStyle:   getOrDefaultBool(v, "S3_USE_PATH_STYLE", false),
 	}
 
 	return cfg
@@ -108,4 +110,11 @@ func getOrDefaultInt(v *viper.Viper, key string, def int) int {
 		return def
 	}
 	return val
+}
+
+func getOrDefaultBool(v *viper.Viper, key string, def bool) bool {
+	if !v.IsSet(key) {
+		return def
+	}
+	return v.GetBool(key)
 }

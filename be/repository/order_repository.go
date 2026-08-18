@@ -63,6 +63,22 @@ func (r *OrderRepository) FindAll(c context.Context, paginationReq *model.Pagina
 	}, nil
 }
 
+func (r *OrderRepository) FindById(c context.Context, orderID int64) (*model.Order, error) {
+	var order model.Order
+
+	err := r.DB.WithContext(c).Preload("User").First(&order, orderID).Error
+
+	if err != nil {
+		return nil, err
+	}
+
+	return &order, nil
+}
+
+func (r *OrderRepository) UpdateOrderAttachmentKey(c context.Context, orderID int64, attachment_key string) error {
+	return r.DB.WithContext(c).Model(&model.Order{}).Where("id = ?", orderID).Update("attachment_key", attachment_key).Error
+}
+
 func filterOrderQuery(filter *model.OrderFilter, query *gorm.DB) *gorm.DB {
 
 	if filter.Search != "" {

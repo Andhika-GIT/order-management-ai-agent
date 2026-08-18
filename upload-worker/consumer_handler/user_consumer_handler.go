@@ -1,31 +1,33 @@
 package consumer
 
 import (
+	"bytes"
 	"context"
 	"encoding/json"
 	"fmt"
 	"log"
+	"path"
 
 	"github.com/Andhika-GIT/go-message-broker-monorepo/model"
+	"github.com/Andhika-GIT/go-message-broker-monorepo/pkg/S3_helper"
 	"github.com/Andhika-GIT/go-message-broker-monorepo/pkg/excel"
 	"github.com/Andhika-GIT/go-message-broker-monorepo/pkg/redis"
 	"github.com/Andhika-GIT/go-message-broker-monorepo/usecase"
-	"github.com/pkg/sftp"
 	"github.com/rabbitmq/amqp091-go"
 )
 
 type UserConsumer struct {
 	RdsPublisher *redis.Publisher
 	UseCase      *usecase.UserUseCase
-	sftpClient   *sftp.Client
+	s3Helper     S3_helper.S3Helper
 }
 
-func NewUserConsumerHandler(RdsPublisher *redis.Publisher, UseCase *usecase.UserUseCase, sftpClient *sftp.Client) *UserConsumer {
+func NewUserConsumerHandler(RdsPublisher *redis.Publisher, UseCase *usecase.UserUseCase, s3Helper S3_helper.S3Helper) *UserConsumer {
 	return &UserConsumer{
 
 		RdsPublisher: RdsPublisher,
 		UseCase:      UseCase,
-		sftpClient:   sftpClient,
+		s3Helper:     s3Helper,
 	}
 }
 
@@ -41,15 +43,15 @@ func (w *UserConsumer) HandleMessage(c context.Context, msg amqp091.Delivery) {
 		return
 	}
 
-	remoteFile, err := w.sftpClient.Open(uploadMsg.Filepath)
+	data, err := w.s3Helper.Download(c, uploadMsg.Key)
 
 	if err != nil {
-		log.Printf("error when reading sftp file: %v", err)
+		log.Printf("error when downloading s3 file: %v", err)
 		_ = msg.Nack(false, true)
 		return
 	}
 
-	rows, err := excel.ReadExcel(remoteFile)
+	rows, err := excel.ReadExcel(bytes.NewReader(data))
 
 	if err != nil {
 		log.Printf("error when reading excel file: %v", err)
@@ -67,7 +69,11 @@ func (w *UserConsumer) HandleMessage(c context.Context, msg amqp091.Delivery) {
 		return
 	}
 
-	err = w.RdsPublisher.PublishMessage(c, "notifications", fmt.Sprintf("successfully uploaded %s", uploadMsg.Filename))
+	if err := w.s3Helper.Delete(c, uploadMsg.Key); err != nil {
+		log.Printf("error when deleting s3 file: %v", err)
+	}
+
+	err = w.RdsPublisher.PublishMessage(c, "notifications", fmt.Sprintf("successfully uploaded %s", path.Base(uploadMsg.Key)))
 
 	if err != nil {
 		log.Printf("error when publishing message: %v", err)

@@ -1,0 +1,1 @@
+ALTER TABLE orders ADD COLUMN attachment_key VARCHAR(255) DEFAULT NULL

@@ -3,19 +3,19 @@ package worker
 import (
 	"context"
 	"encoding/json"
-	"fmt"
 	"io"
 	"log"
 
 	"github.com/Andhika-GIT/go-message-broker-monorepo/model"
+	"github.com/Andhika-GIT/go-message-broker-monorepo/pkg/S3_helper"
 	"github.com/Andhika-GIT/go-message-broker-monorepo/pkg/rabbitmq"
-	"github.com/pkg/sftp"
 )
 
 type UploadTask struct {
 	File            io.Reader
-	Filename        string
-	Filepath        string
+	Key             string
+	Bucket          string
+	ContentType     string
 	QueueRoutingKey string
 }
 
@@ -23,13 +23,13 @@ var UploadQueue = make(chan UploadTask, 100)
 
 type UploadWorker struct {
 	publisher  *rabbitmq.Publisher
-	sftpClient *sftp.Client
+	s3Helper   S3_helper.S3Helper
 	numWorkers int
 }
 
-func NewUploadWorker(sftp *sftp.Client, publisher *rabbitmq.Publisher, numWorkers int) *UploadWorker {
+func NewUploadWorker(s3Helper S3_helper.S3Helper, publisher *rabbitmq.Publisher, numWorkers int) *UploadWorker {
 	return &UploadWorker{
-		sftpClient: sftp,
+		s3Helper:   s3Helper,
 		publisher:  publisher,
 		numWorkers: numWorkers,
 	}
@@ -46,28 +46,16 @@ func (w *UploadWorker) Start(ctx context.Context) {
 }
 
 func (w *UploadWorker) processUpload(ctx context.Context, task UploadTask) {
-
-	path := fmt.Sprintf("%v/%s", task.Filepath, task.Filename)
-
-	log.Print(path)
-
-	dstFile, err := w.sftpClient.Create(path)
+	err := w.s3Helper.Upload(ctx, task.Key, task.File, task.ContentType)
 
 	if err != nil {
-		log.Fatalf("error when connecting to sftp : %s", err.Error())
-	}
-
-	defer dstFile.Close()
-
-	_, err = io.Copy(dstFile, task.File)
-
-	if err != nil {
-		log.Fatalf("error when insert file to sftp %s", err.Error())
+		log.Printf("failed to upload to s3: %v", err)
+		return
 	}
 
 	uploadMsg := model.UploadMessage{
-		Filename: task.Filename,
-		Filepath: path,
+		Key:    task.Key,
+		Bucket: task.Bucket,
 	}
 
 	body, err := json.Marshal(uploadMsg)
