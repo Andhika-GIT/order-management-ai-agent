@@ -1,25 +1,25 @@
 "use client"
 
 import { handleFetchResponse, SERVER_BASE_URL_FOR_CLIENT } from "@/lib/helper"
-import { Order } from "@/lib/schemas";
+import { Product } from "@/lib/schemas";
 import { Error, Paginate } from "@/lib/types";
 
-type FetchResult = Paginate<Order[]>
+type FetchResult = Paginate<Product[]>
 
 type PresignResult = {
   url: string;
   key: string;
 }
 
-export const getOrderImagePresignedUrl = async (orderId: number, filename: string, contentType: string): Promise<PresignResult | undefined> => {
-  const BASE_URL = `${SERVER_BASE_URL_FOR_CLIENT}/upload/order_image/presign`;
+export const getProductImagePresignedUrl = async (productId: number, filename: string, contentType: string): Promise<PresignResult | undefined> => {
+  const BASE_URL = `${SERVER_BASE_URL_FOR_CLIENT}/upload/product_image/presign`;
 
   try {
     const response = await fetch(BASE_URL, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
-        order_id: orderId,
+        product_id: productId,
         filename,
         content_type: contentType,
       }),
@@ -52,14 +52,14 @@ export const uploadFileToPresignedUrl = async (url: string, file: File): Promise
   }
 };
 
-export const confirmUploadOrderAttachment = async (orderId: number, key: string): Promise<void> => {
-  const BASE_URL = `${SERVER_BASE_URL_FOR_CLIENT}/upload/order_image/confirm`;
+export const confirmUploadProductImage = async (productId: number, key: string): Promise<void> => {
+  const BASE_URL = `${SERVER_BASE_URL_FOR_CLIENT}/upload/product_image/confirm`;
 
   try {
     const response = await fetch(BASE_URL, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ order_id: orderId, key }),
+      body: JSON.stringify({ product_id: productId, key }),
     });
 
     return await handleFetchResponse(response);
@@ -68,8 +68,8 @@ export const confirmUploadOrderAttachment = async (orderId: number, key: string)
   }
 };
 
-export const UploadOrderExcel = async (file: File): Promise<string | undefined> => {
-  const BASE_URL = `${SERVER_BASE_URL_FOR_CLIENT}/order/upload`;
+export const UploadProductExcel = async (file: File): Promise<string | undefined> => {
+  const BASE_URL = `${SERVER_BASE_URL_FOR_CLIENT}/product/upload`;
 
   try {
 
@@ -87,7 +87,7 @@ export const UploadOrderExcel = async (file: File): Promise<string | undefined> 
   }
 };
 
-export const getAllOrders = async (page: number, pageSize: number, search: null | string = null): Promise<FetchResult | undefined> => {
+export const getAllProducts = async (page: number, pageSize: number, search: null | string = null): Promise<FetchResult | undefined> => {
     const params = new URLSearchParams({
     page: page.toString(),
     per_page: pageSize.toString(),
@@ -97,7 +97,7 @@ export const getAllOrders = async (page: number, pageSize: number, search: null 
     params.append('search', search.trim());
   }
 
-  const BASE_URL = `${SERVER_BASE_URL_FOR_CLIENT}/order?${params.toString()}`;
+  const BASE_URL = `${SERVER_BASE_URL_FOR_CLIENT}/product?${params.toString()}`;
 
   try {
     const response = await fetch(BASE_URL, {
