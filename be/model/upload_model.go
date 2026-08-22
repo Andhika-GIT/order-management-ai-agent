@@ -10,15 +10,15 @@ type PresignRequest struct {
 	ContentType string `json:"content_type"`
 }
 
-type OrderImagePresignRequest struct {
+type ProductImagePresignRequest struct {
 	Filename    string `json:"filename"`
 	ContentType string `json:"content_type"`
-	OrderID     int64  `json:"order_id"`
+	ProductID   int64  `json:"product_id"`
 }
 
-type OrderAttachmentConfirmRequest struct {
-	Key     string `json:"key"`
-	OrderID int64  `json:"order_id"`
+type ProductImageConfirmRequest struct {
+	Key       string `json:"key"`
+	ProductID int64  `json:"product_id"`
 }
 
 type PresignResponse struct {

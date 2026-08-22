@@ -9,26 +9,17 @@ import (
 )
 
 type DashboardController struct {
-	userUseCase  *usecase.UserUseCase
-	orderUseCase *usecase.OrderUseCase
+	productUseCase *usecase.ProductUseCase
 }
 
-func NewDashboardController(userUseCase *usecase.UserUseCase, orderUseCase *usecase.OrderUseCase) *DashboardController {
+func NewDashboardController(productUseCase *usecase.ProductUseCase) *DashboardController {
 	return &DashboardController{
-		userUseCase:  userUseCase,
-		orderUseCase: orderUseCase,
+		productUseCase: productUseCase,
 	}
 }
 
 func (h *DashboardController) GetDataSummary(w http.ResponseWriter, r *http.Request) {
-	totalUsers, err := h.userUseCase.CountAllUsers(r.Context())
-
-	if err != nil {
-		httputil.SendJsonErrorResponse(w, err, nil)
-		return
-	}
-
-	totalOrders, err := h.orderUseCase.CountAllOrders(r.Context())
+	totalProducts, err := h.productUseCase.CountAllProducts(r.Context())
 
 	if err != nil {
 		httputil.SendJsonErrorResponse(w, err, nil)
@@ -36,8 +27,7 @@ func (h *DashboardController) GetDataSummary(w http.ResponseWriter, r *http.Requ
 	}
 
 	response := &model.DashboardResponse{
-		TotalOrders: *totalOrders,
-		TotalUsers:  *totalUsers,
+		TotalProducts: *totalProducts,
 	}
 
 	httputil.SendJsonResponse(w, 200, "successfully get dashboard data", response)

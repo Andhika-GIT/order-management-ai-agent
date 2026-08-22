@@ -45,10 +45,9 @@ func InitApp() *chi.Mux {
 		S3Helper:     s3Helper,
 	}
 
-	orderUseCase := wireOrderModule(deps)
-	userUseCase := wireUserModule(deps)
-	wireDashboardModule(deps, userUseCase, orderUseCase)
-	wireUploadModule(deps, orderUseCase)
+	productUseCase := wireProductModule(deps)
+	wireDashboardModule(deps, productUseCase)
+	wireUploadModule(deps, productUseCase)
 
 	return r
 }

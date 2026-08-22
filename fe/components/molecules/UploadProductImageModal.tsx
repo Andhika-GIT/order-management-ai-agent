@@ -15,17 +15,17 @@ import {
 } from "@/components/ui/shadcn-io/dropzone";
 import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
-import { confirmUploadOrderAttachment, getOrderImagePresignedUrl, uploadFileToPresignedUrl } from "@/app/action/order";
+import { confirmUploadProductImage, getProductImagePresignedUrl, uploadFileToPresignedUrl } from "@/app/action/product";
 import { Error } from "@/lib/types";
 
-type UploadAttachmentModalProps = {
-  orderId: number;
+type UploadProductImageModalProps = {
+  productId: number;
   open: boolean;
   onOpenChange: (open: boolean) => void;
 };
 
-export const UploadAttachmentModal: React.FC<UploadAttachmentModalProps> = ({
-  orderId,
+export const UploadProductImageModal: React.FC<UploadProductImageModalProps> = ({
+  productId,
   open,
   onOpenChange,
 }) => {
@@ -47,8 +47,8 @@ export const UploadAttachmentModal: React.FC<UploadAttachmentModalProps> = ({
 
     setIsLoading(true);
     try {
-      const presigned = await getOrderImagePresignedUrl(
-        orderId,
+      const presigned = await getProductImagePresignedUrl(
+        productId,
         file.name,
         file.type
       );
@@ -58,9 +58,8 @@ export const UploadAttachmentModal: React.FC<UploadAttachmentModalProps> = ({
       }
 
       await uploadFileToPresignedUrl(presigned.url, file);
-      await confirmUploadOrderAttachment(orderId, presigned.key)
+      await confirmUploadProductImage(productId, presigned.key)
 
-      // TODO: persist `presigned.key` against the order
       toast.success("File uploaded successfully");
       closeModal();
     } catch (e) {
@@ -81,7 +80,7 @@ export const UploadAttachmentModal: React.FC<UploadAttachmentModalProps> = ({
     >
       <DialogContent>
         <DialogHeader>
-          <DialogTitle>Upload Attachment</DialogTitle>
+          <DialogTitle>Upload Product Image</DialogTitle>
         </DialogHeader>
         <Dropzone
           accept={{
