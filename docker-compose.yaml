@@ -51,6 +51,19 @@ services:
       - ./fe:/app  
       - /app/node_modules
     container_name: gmbm-fe-c-dev
+  ai-agent:
+    build:
+      context: ./ai-agent
+      dockerfile: dockerfile.dev
+    ports:
+      - "3002:3002"
+    env_file:
+      - ./ai-agent/.env
+    volumes:
+      - ./ai-agent:/app
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
+    container_name: gmbm-ai-agent-c-dev
 
   redis-pubsub:
     image: redis:7.4-alpine
