@@ -8,7 +8,7 @@ export default async function Page() {
 
   return (
     <>
-      <SectionCards total_orders={data.total_orders} total_users={data.total_users}/>
+      <SectionCards total_products={data.total_products}/>
       {/* <div className="px-4 lg:px-6">
         <ChartAreaInteractive />
       </div> */}

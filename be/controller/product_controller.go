@@ -15,36 +15,37 @@ import (
 	"github.com/Andhika-GIT/go-message-broker-monorepo/usecase"
 )
 
-type UserController struct {
-	usecase      *usecase.UserUseCase
+type ProductController struct {
+	usecase      *usecase.ProductUseCase
 	uploadWorker *worker.UploadWorker
 	config       *configs.Config
 }
 
-func NewUserController(usecase *usecase.UserUseCase, uploadWorker *worker.UploadWorker, config *configs.Config) *UserController {
-	return &UserController{
+func NewProductController(usecase *usecase.ProductUseCase, uploadWorker *worker.UploadWorker, config *configs.Config) *ProductController {
+	return &ProductController{
 		usecase:      usecase,
 		uploadWorker: uploadWorker,
 		config:       config,
 	}
 }
 
-func (h *UserController) GetAllUsers(w http.ResponseWriter, r *http.Request) {
+func (h *ProductController) GetAllProducts(w http.ResponseWriter, r *http.Request) {
 	paginationReq := httputil.GetPaginationParams(r)
 
-	userFilter := bindUserFilterFromRequest(r)
+	productFilter := bindProductFilterFromRequest(r)
 
-	users, err := h.usecase.FindAllUsers(r.Context(), paginationReq, userFilter)
+	products, err := h.usecase.FindAllProducts(r.Context(), paginationReq, productFilter)
 
 	if err != nil {
 		httputil.SendJsonErrorResponse(w, err, nil)
 		return
 	}
 
-	httputil.SendJsonResponse(w, 200, "success", users)
+	httputil.SendJsonResponse(w, 200, "success", products)
+
 }
 
-func (h *UserController) UploadUser(w http.ResponseWriter, r *http.Request) {
+func (h *ProductController) UploadProduct(w http.ResponseWriter, r *http.Request) {
 	r.ParseMultipartForm(10 << 20)
 
 	file, header, err := r.FormFile("file")
@@ -70,24 +71,23 @@ func (h *UserController) UploadUser(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	key := fmt.Sprintf("upload-temp/user/%d-%s", time.Now().UnixNano(), header.Filename)
+	key := fmt.Sprintf("upload-temp/product/%d-%s", time.Now().UnixNano(), header.Filename)
 
 	h.uploadWorker.Queue(worker.UploadTask{
 		File:            bytes.NewReader(data),
 		Key:             key,
 		Bucket:          h.config.S3Config.Bucket,
 		ContentType:     "application/octet-stream",
-		QueueRoutingKey: h.config.RabbitMQRoutingKey.UserImport,
+		QueueRoutingKey: h.config.RabbitMQRoutingKey.ProductImport,
 	})
 
 	httputil.SendJsonResponse(w, 200, "success", nil)
 }
 
-func bindUserFilterFromRequest(r *http.Request) *model.UserFilter {
-	return &model.UserFilter{
-		Name:        r.URL.Query().Get("name"),
-		Email:       r.URL.Query().Get("email"),
-		PhoneNumber: r.URL.Query().Get("phone_number"),
-		Search:      r.URL.Query().Get("search"),
+func bindProductFilterFromRequest(r *http.Request) *model.ProductFilter {
+	return &model.ProductFilter{
+		SKU:    r.URL.Query().Get("sku"),
+		Status: r.URL.Query().Get("status"),
+		Search: r.URL.Query().Get("search"),
 	}
 }

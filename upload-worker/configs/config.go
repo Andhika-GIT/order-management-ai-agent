@@ -10,20 +10,6 @@ type DatabaseConfig struct {
 	Name     string
 }
 
-type RabbitMQRoutingKey struct {
-	UserImport  string
-	UserExport  string
-	OrderImport string
-	OrderExport string
-}
-
-type RabbitMQQueue struct {
-	UserImport  string
-	UserExport  string
-	OrderImport string
-	OrderExport string
-}
-
 type RabbitMQConfig struct {
 	URL          string
 	Queue        string
@@ -53,10 +39,6 @@ type Config struct {
 	RabbitMQConnectURL string
 	RabbitMQExchange   string
 
-	RabbitMQRoutingKey RabbitMQRoutingKey
-
-	RabbitMQQueue RabbitMQQueue
-
 	// Database
 	Database DatabaseConfig
 
@@ -73,22 +55,6 @@ func InitConfig(v *viper.Viper) *Config {
 	// --- RabbitMQ connection ---
 	cfg.RabbitMQConnectURL = getOrDefaultString(v, "RABBITMQ_CONNECTION_URL", "amqp://guest:guest@localhost:5672/")
 	cfg.RabbitMQExchange = getOrDefaultString(v, "MQ_EXCHANGE_GO_APP", "go-app-exchange")
-
-	// --- RabbitMQ Routing Keys ---
-	cfg.RabbitMQRoutingKey = RabbitMQRoutingKey{
-		UserImport:  getOrDefaultString(v, "MQ_RK_USER_IMPORT", "user.import"),
-		UserExport:  getOrDefaultString(v, "MQ_RK_USER_EXPORT", "user.export"),
-		OrderImport: getOrDefaultString(v, "MQ_RK_ORDER_IMPORT", "order.import"),
-		OrderExport: getOrDefaultString(v, "MQ_RK_ORDER_EXPORT", "order.export"),
-	}
-
-	// --- RabbitMQ Queues ---
-	cfg.RabbitMQQueue = RabbitMQQueue{
-		UserImport:  getOrDefaultString(v, "MQ_Q_USER_IMPORT", "user.import.q"),
-		UserExport:  getOrDefaultString(v, "MQ_Q_USER_EXPORT", "user.export.q"),
-		OrderImport: getOrDefaultString(v, "MQ_Q_ORDER_IMPORT", "order.import.q"),
-		OrderExport: getOrDefaultString(v, "MQ_Q_ORDER_EXPORT", "order.export.q"),
-	}
 
 	// --- Database ---
 	cfg.Database = DatabaseConfig{

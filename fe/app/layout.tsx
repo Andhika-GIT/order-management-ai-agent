@@ -19,8 +19,8 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "Order Management",
-  description: "Simple Order Management By AI",
+  title: "Product Management",
+  description: "Simple Product Management By AI",
 };
 
 export default function RootLayout({

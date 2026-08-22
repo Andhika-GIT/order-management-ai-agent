@@ -1,7 +1,7 @@
 'use client'
 
 import { useState } from "react"
-import { Order } from "@/lib/schemas"
+import { Product } from "@/lib/schemas"
 import { Checkbox } from "@/components/ui/checkbox"
 import { ColumnDef } from "@tanstack/react-table"
 import {
@@ -12,10 +12,10 @@ import {
 } from "@/components/ui/dropdown-menu"
 import { Button } from "@/components/ui/button"
 import { IconDotsVertical } from "@tabler/icons-react"
-import { UploadAttachmentModal } from "@/components/molecules"
-import z from "zod"
+import { UploadProductImageModal } from "@/components/molecules"
+import { Badge } from "@/components/ui/badge"
 
-const OrderActionsCell: React.FC<{ order: Order }> = ({ order }) => {
+const ProductActionsCell: React.FC<{ product: Product }> = ({ product }) => {
   const [open, setOpen] = useState(false)
 
   return (
@@ -36,17 +36,17 @@ const OrderActionsCell: React.FC<{ order: Order }> = ({ order }) => {
           <DropdownMenuItem>Make a copy</DropdownMenuItem>
           <DropdownMenuItem>Favorite</DropdownMenuItem>
           <DropdownMenuSeparator />
-          <DropdownMenuItem onClick={() => setOpen(true)}>Upload Attachment</DropdownMenuItem>
+          <DropdownMenuItem onClick={() => setOpen(true)}>Upload Image</DropdownMenuItem>
           <DropdownMenuSeparator />
           <DropdownMenuItem variant="destructive">Delete</DropdownMenuItem>
         </DropdownMenuContent>
       </DropdownMenu>
-      <UploadAttachmentModal orderId={order.id} open={open} onOpenChange={setOpen} />
+      <UploadProductImageModal productId={product.id} open={open} onOpenChange={setOpen} />
     </>
   )
 }
 
-export const columns: ColumnDef<Order>[] = [
+export const columns: ColumnDef<Product>[] = [
 
   {
     id: "select",
@@ -75,29 +75,50 @@ export const columns: ColumnDef<Order>[] = [
     enableHiding: false,
   },
   {
-    accessorKey: "email",
-    header: "Email",
+    accessorKey: "name",
+    header: "Name",
     cell: ({ row }) => {
-        return row.original.email
+        return row.original.name
     },
   },
   {
-    accessorKey: "product_name",
-    header: "Product Name",
+    accessorKey: "sku",
+    header: "SKU",
     cell: ({ row }) => {
-        return row.original.product_name
+        return row.original.sku ?? "-"
     },
   },
   {
-    accessorKey: "quantity",
-    header: "Quantity",
+    accessorKey: "price",
+    header: "Price",
     cell: ({ row }) => {
-        return row.original.quantity
+        return row.original.price
     },
   },
-  
+  {
+    accessorKey: "stock",
+    header: "Stock",
+    cell: ({ row }) => {
+        return row.original.stock
+    },
+  },
+  {
+    accessorKey: "status",
+    header: "Status",
+    cell: ({ row }) => {
+        return <Badge variant="outline" className="text-muted-foreground px-1.5">{row.original.status}</Badge>
+    },
+  },
+  {
+    accessorKey: "is_featured",
+    header: "Featured",
+    cell: ({ row }) => {
+        return row.original.is_featured ? "Yes" : "No"
+    },
+  },
+
   {
     id: "actions",
-    cell: ({ row }) => <OrderActionsCell order={row.original} />,
+    cell: ({ row }) => <ProductActionsCell product={row.original} />,
   },
 ]

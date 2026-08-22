@@ -176,7 +176,7 @@ export function DataTable<TData extends { id: string | number }>({
                 })}
             </DropdownMenuContent>
           </DropdownMenu>
-          <Input type="email" placeholder="search by name or email..." onChange={(e) => setSearch(e.target.value)} />
+          <Input type="text" placeholder="Search..." onChange={(e) => setSearch(e.target.value)} />
         </div>
         <div className="flex items-center gap-2">
           <label
