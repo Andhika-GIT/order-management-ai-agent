@@ -23,38 +23,19 @@ type ModuleDeps struct {
 	Ctx          context.Context
 }
 
-func wireUserModule(deps ModuleDeps) *usecase.UserUseCase {
-	userUseCase := usecase.NewUserUseCase(&repository.UserRepository{}, deps.DB)
+func wireProductModule(deps ModuleDeps) {
+	productUseCase := usecase.NewProductUseCase(&repository.ProductRepository{}, deps.DB)
 
-	handler := consumer.NewUserConsumerHandler(deps.RdsPublisher, userUseCase, deps.S3Helper)
+	handler := consumer.NewProductConsumerHandler(deps.RdsPublisher, productUseCase, deps.S3Helper)
 
-	userConsumer := rabbitmq.NewRabbitMqConsumer(
-		configs.UserImportConsumer(deps.Viper),
+	productConsumer := rabbitmq.NewRabbitMqConsumer(
+		configs.ProductImportConsumer(deps.Viper),
 		handler.HandleMessage,
 	)
 
 	go func() {
-		if err := userConsumer.Run(deps.Ctx); err != nil {
-			log.Printf("user consumer stopped: %v", err)
-		}
-	}()
-
-	return userUseCase
-}
-
-func wireOrderModule(deps ModuleDeps, userUseCase *usecase.UserUseCase) {
-	orderUseCase := usecase.NewOrderUseCase(&repository.OrderRepository{}, deps.DB, userUseCase)
-
-	handler := consumer.NewOrderConsumerHandler(deps.RdsPublisher, orderUseCase, deps.S3Helper)
-
-	orderConsumer := rabbitmq.NewRabbitMqConsumer(
-		configs.OrderImportConsumer(deps.Viper),
-		handler.HandleMessage,
-	)
-
-	go func() {
-		if err := orderConsumer.Run(deps.Ctx); err != nil {
-			log.Printf("order consumer stopped: %v", err)
+		if err := productConsumer.Run(deps.Ctx); err != nil {
+			log.Printf("product consumer stopped: %v", err)
 		}
 	}()
 }

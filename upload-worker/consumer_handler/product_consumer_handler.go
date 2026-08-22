@@ -16,22 +16,21 @@ import (
 	"github.com/rabbitmq/amqp091-go"
 )
 
-type UserConsumer struct {
+type ProductConsumer struct {
 	RdsPublisher *redis.Publisher
-	UseCase      *usecase.UserUseCase
+	UseCase      *usecase.ProductUseCase
 	s3Helper     S3_helper.S3Helper
 }
 
-func NewUserConsumerHandler(RdsPublisher *redis.Publisher, UseCase *usecase.UserUseCase, s3Helper S3_helper.S3Helper) *UserConsumer {
-	return &UserConsumer{
-
+func NewProductConsumerHandler(RdsPublisher *redis.Publisher, UseCase *usecase.ProductUseCase, s3Helper S3_helper.S3Helper) *ProductConsumer {
+	return &ProductConsumer{
 		RdsPublisher: RdsPublisher,
 		UseCase:      UseCase,
 		s3Helper:     s3Helper,
 	}
 }
 
-func (w *UserConsumer) HandleMessage(c context.Context, msg amqp091.Delivery) {
+func (w *ProductConsumer) HandleMessage(c context.Context, msg amqp091.Delivery) {
 
 	var uploadMsg model.UploadMessage
 
@@ -59,12 +58,12 @@ func (w *UserConsumer) HandleMessage(c context.Context, msg amqp091.Delivery) {
 		return
 	}
 
-	newUsers := w.UseCase.ReadUsersExcel(rows)
+	newProducts := w.UseCase.ReadProductExcel(rows)
 
-	err = w.UseCase.CreateNewUsers(c, newUsers)
+	err = w.UseCase.CreateProducts(c, newProducts)
 
 	if err != nil {
-		log.Printf("error when creating users from excel: %v", err)
+		log.Printf("error when creating products from excel: %v", err)
 		_ = msg.Nack(false, true)
 		return
 	}
@@ -80,4 +79,5 @@ func (w *UserConsumer) HandleMessage(c context.Context, msg amqp091.Delivery) {
 	}
 
 	_ = msg.Ack(false)
+
 }

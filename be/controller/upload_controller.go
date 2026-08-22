@@ -16,14 +16,14 @@ import (
 const presignExpiry = 15 * time.Minute
 
 type UploadController struct {
-	s3Helper     S3_helper.S3Helper
-	orderUsecase usecase.OrderUseCase
+	s3Helper       S3_helper.S3Helper
+	productUsecase usecase.ProductUseCase
 }
 
-func NewUploadController(s3Helper S3_helper.S3Helper, orderUsecase usecase.OrderUseCase) *UploadController {
+func NewUploadController(s3Helper S3_helper.S3Helper, productUsecase usecase.ProductUseCase) *UploadController {
 	return &UploadController{
-		s3Helper:     s3Helper,
-		orderUsecase: orderUsecase,
+		s3Helper:       s3Helper,
+		productUsecase: productUsecase,
 	}
 }
 
@@ -52,8 +52,8 @@ func (h *UploadController) GetPresignedUploadURL(w http.ResponseWriter, r *http.
 	httputil.SendJsonResponse(w, 200, "success", model.PresignResponse{URL: url, Key: key})
 }
 
-func (h *UploadController) GetUploadOrderImagePresignedURL(w http.ResponseWriter, r *http.Request) {
-	var req model.OrderImagePresignRequest
+func (h *UploadController) GetUploadProductImagePresignedURL(w http.ResponseWriter, r *http.Request) {
+	var req model.ProductImagePresignRequest
 
 	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
 		httputil.SendJsonErrorResponse(w, model.WriteError(400, "invalid request body"), nil)
@@ -65,15 +65,15 @@ func (h *UploadController) GetUploadOrderImagePresignedURL(w http.ResponseWriter
 		return
 	}
 
-	order, err := h.orderUsecase.FindOrderByID(r.Context(), req.OrderID)
+	product, err := h.productUsecase.FindProductByID(r.Context(), req.ProductID)
 
 	if err != nil {
-		errMsg := fmt.Sprintf("error when find order: %v", err)
+		errMsg := fmt.Sprintf("error when find product: %v", err)
 		httputil.SendJsonErrorResponse(w, model.WriteError(400, errMsg), nil)
 		return
 	}
 
-	key := fmt.Sprintf("uploads/%d/%d-%s", order.ID, time.Now().UnixNano(), req.Filename)
+	key := fmt.Sprintf("uploads/%d/%d-%s", product.ID, time.Now().UnixNano(), req.Filename)
 
 	url, err := h.s3Helper.GetPresignedInsertURL(r.Context(), key, req.ContentType, presignExpiry)
 
@@ -85,30 +85,30 @@ func (h *UploadController) GetUploadOrderImagePresignedURL(w http.ResponseWriter
 	httputil.SendJsonResponse(w, 200, "success", model.PresignResponse{URL: url, Key: key})
 }
 
-func (h *UploadController) ConfirmUploadOrderAttachment(w http.ResponseWriter, r *http.Request) {
-	var req model.OrderAttachmentConfirmRequest
+func (h *UploadController) ConfirmUploadProductImage(w http.ResponseWriter, r *http.Request) {
+	var req model.ProductImageConfirmRequest
 
 	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
 		httputil.SendJsonErrorResponse(w, model.WriteError(400, "invalid request body"), nil)
 		return
 	}
 
-	order, err := h.orderUsecase.FindOrderByID(r.Context(), req.OrderID)
+	product, err := h.productUsecase.FindProductByID(r.Context(), req.ProductID)
 
 	if err != nil {
-		errMsg := fmt.Sprintf("error when find order: %v", err)
+		errMsg := fmt.Sprintf("error when find product: %v", err)
 		httputil.SendJsonErrorResponse(w, model.WriteError(400, errMsg), nil)
 		return
 	}
 
-	if order.AttachmentKey != nil {
-		h.s3Helper.Delete(r.Context(), *order.AttachmentKey)
+	if product.ImageURL != nil {
+		h.s3Helper.Delete(r.Context(), *product.ImageURL)
 	}
 
-	err = h.orderUsecase.InsertOrderAttachmentKey(r.Context(), order.ID, req.Key)
+	err = h.productUsecase.InsertProductImageURL(r.Context(), product.ID, req.Key)
 
 	if err != nil {
-		httputil.SendJsonErrorResponse(w, model.WriteError(500, fmt.Sprintf("failed to save new attachment key : %s", err.Error())), nil)
+		httputil.SendJsonErrorResponse(w, model.WriteError(500, fmt.Sprintf("failed to save new product image : %s", err.Error())), nil)
 		return
 	}
 

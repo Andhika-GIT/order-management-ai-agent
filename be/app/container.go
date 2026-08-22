@@ -19,30 +19,21 @@ type ModuleDeps struct {
 	S3Helper     S3_helper.S3Helper
 }
 
-func wireOrderModule(deps ModuleDeps) *usecase.OrderUseCase {
-	repo := repository.NewOrderRepository(deps.DB)
-	uc := usecase.NewOrderUseCase(repo)
-	ctrl := controller.NewOrderController(uc, deps.UploadWorker, deps.config)
-	registerOrderRoutes(deps.Router, ctrl)
+func wireProductModule(deps ModuleDeps) *usecase.ProductUseCase {
+	repo := repository.NewProductRepository(deps.DB)
+	uc := usecase.NewProductUseCase(repo)
+	ctrl := controller.NewProductController(uc, deps.UploadWorker, deps.config)
+	registerProductRoutes(deps.Router, ctrl)
 
 	return uc
 }
 
-func wireUserModule(deps ModuleDeps) *usecase.UserUseCase {
-	repo := repository.NewUserRepository(deps.DB)
-	uc := usecase.NewUserUseCase(repo, deps.DB)
-	ctrl := controller.NewUserController(uc, deps.UploadWorker, deps.config)
-	registerUserRoutes(deps.Router, ctrl)
-
-	return uc
-}
-
-func wireDashboardModule(deps ModuleDeps, userUseCase *usecase.UserUseCase, orderUseCase *usecase.OrderUseCase) {
-	ctrl := controller.NewDashboardController(userUseCase, orderUseCase)
+func wireDashboardModule(deps ModuleDeps, productUseCase *usecase.ProductUseCase) {
+	ctrl := controller.NewDashboardController(productUseCase)
 	registerDashboardRoutes(deps.Router, ctrl)
 }
 
-func wireUploadModule(deps ModuleDeps, orderUsecase *usecase.OrderUseCase) {
-	ctrl := controller.NewUploadController(deps.S3Helper, *orderUsecase)
+func wireUploadModule(deps ModuleDeps, productUsecase *usecase.ProductUseCase) {
+	ctrl := controller.NewUploadController(deps.S3Helper, *productUsecase)
 	registerUploadRoutes(deps.Router, ctrl)
 }

@@ -5,14 +5,9 @@ import (
 	"github.com/go-chi/chi/v5"
 )
 
-func registerOrderRoutes(r chi.Router, c *controller.OrderController) {
-	r.Get("/order", c.GetAllOrders)
-	r.Post("/order/upload", c.UploadOrder)
-}
-
-func registerUserRoutes(r chi.Router, c *controller.UserController) {
-	r.Get("/user", c.GetAllUsers)
-	r.Post("/user/upload", c.UploadUser)
+func registerProductRoutes(r chi.Router, c *controller.ProductController) {
+	r.Get("/product", c.GetAllProducts)
+	r.Post("/product/upload", c.UploadProduct)
 }
 
 func registerDashboardRoutes(r chi.Router, c *controller.DashboardController) {
@@ -21,6 +16,6 @@ func registerDashboardRoutes(r chi.Router, c *controller.DashboardController) {
 
 func registerUploadRoutes(r chi.Router, c *controller.UploadController) {
 	r.Post("/upload/presign", c.GetPresignedUploadURL)
-	r.Post("/upload/order_image/presign", c.GetUploadOrderImagePresignedURL)
-	r.Post("/upload/order_image/confirm", c.ConfirmUploadOrderAttachment)
+	r.Post("/upload/product_image/presign", c.GetUploadProductImagePresignedURL)
+	r.Post("/upload/product_image/confirm", c.ConfirmUploadProductImage)
 }

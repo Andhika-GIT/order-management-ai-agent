@@ -11,10 +11,7 @@ type DatabaseConfig struct {
 }
 
 type RabbitMQRoutingKey struct {
-	UserImport  string
-	UserExport  string
-	OrderImport string
-	OrderExport string
+	ProductImport string
 }
 
 type RabbitMQConfig struct {
@@ -59,10 +56,7 @@ func InitConfig(v *viper.Viper) *Config {
 
 	// --- RabbitMQ Routing Keys ---
 	cfg.RabbitMQRoutingKey = RabbitMQRoutingKey{
-		UserImport:  getOrDefaultString(v, "MQ_RK_USER_IMPORT", "user.import"),
-		UserExport:  getOrDefaultString(v, "MQ_RK_USER_EXPORT", "user.export"),
-		OrderImport: getOrDefaultString(v, "MQ_RK_ORDER_IMPORT", "order.import"),
-		OrderExport: getOrDefaultString(v, "MQ_RK_ORDER_EXPORT", "order.export"),
+		ProductImport: getOrDefaultString(v, "MQ_RK_PRODUCT_IMPORT", "product.import"),
 	}
 
 	// --- Database ---
